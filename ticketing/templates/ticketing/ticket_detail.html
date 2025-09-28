@@ -1,0 +1,15 @@
+<h2>Ticket Details</h2>
+<p><strong>Event:</strong> {{ ticket.event.title }}</p>
+<p><strong>Venue:</strong> {{ ticket.event.venue }}</p>
+<p><strong>Date:</strong> {{ ticket.event.date }}</p>
+<p><strong>Booking Date:</strong> {{ ticket.booking_date }}</p>
+<p style="color: red;"><strong>Note:</strong> Please pay as you enter for the event.</p>
+
+{% if ticket.qr_code %}
+    <p><strong>Scan this QR code at the entrance:</strong></p>
+    <img src="{{ ticket.qr_code.url }}" alt="Ticket QR Code">
+{% else %}
+    <p>QR Code not available</p>
+{% endif %}
+
+<a href="{% url 'event_list' %}">Back to Events</a>

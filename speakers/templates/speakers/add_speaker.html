@@ -1,0 +1,10 @@
+<h2>Add Speaker to {{ event.title }}</h2>
+<form method="POST">
+    {% csrf_token %}
+    <label>Name:</label> <input type="text" name="name" required><br>
+    <label>Email:</label> <input type="email" name="email" required><br>
+    <label>Bio:</label> <textarea name="bio" required></textarea><br>
+    <label>Topic:</label> <input type="text" name="topic" required><br>
+    <button type="submit">Add Speaker</button>
+</form>
+<a href="{% url 'speaker_list' event.id %}">View Speakers</a>
