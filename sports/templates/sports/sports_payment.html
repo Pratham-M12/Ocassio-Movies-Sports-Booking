@@ -1,0 +1,407 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Payment | Ocassio</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-dark: #000;
+  --bg-glass: rgba(0,0,0,0.8);
+  --accent: #4285f4;
+  --accent-green: #34a853;
+  --accent-gradient: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+  --text: #fff;
+  --text-muted: #b0b0b8;
+  --radius: 18px;
+}
+body{background:var(--bg-dark);color:var(--text);font-family:'Inter',sans-serif;margin:0;min-height:100vh;display:flex;flex-direction:column;}
+.navbar{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:1.2rem 2.5rem;background:var(--bg-glass);backdrop-filter:blur(10px);border-bottom:1px solid #23232a;}
+.logo{font-size:2rem;font-weight:800;text-shadow:0 4px 24px #4285f4aa;}
+.ticket-summary {background: rgba(255,255,255,0.05); border-radius: 12px; padding: 1.2rem; box-shadow: 0 2px 10px #23232a55; margin-bottom: 1.5rem;}
+.progress-bar {display: flex; align-items: center; gap: 1.2rem; margin: 2.5rem auto 1.2rem auto; justify-content: center; font-size: 1.1rem; font-weight: 600; color: var(--text-muted);}
+.progress-step {display: flex; align-items: center; gap: 0.5rem;}
+.progress-step.active {color: var(--accent);}
+.progress-dot {width: 12px; height: 12px; border-radius: 50%; background: var(--accent); margin-right: 0.5rem; opacity: 0.7;}
+.progress-step:not(:last-child)::after {content: ''; display: inline-block; width: 40px; height: 2px; background: #333; margin-left: 0.7rem; vertical-align: middle;}
+.main-content-wrap {max-width: 1100px; margin: 7.5rem auto 0 auto; padding: 0 2rem 2rem 2rem; flex: 1 0 auto;}
+.total-section {display: flex; justify-content: space-between; font-size: 1.3rem; font-weight: 700; background: rgba(255,255,255,0.08); padding: 0.8rem 1.2rem; border-radius: 12px; margin-top: 1rem; box-shadow: inset 0 1px 8px rgba(66,133,244,0.2);}
+.top-section {display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2.2rem;}
+.movie-poster {width: 70px; height: 100px; object-fit: cover; border-radius: 10px; box-shadow: 0 2px 12px #e74c3c33; background: #23232a;}
+.movie-details {display: flex; flex-direction: column; gap: 0.3rem;}
+.movie-title {font-size: 1.3rem; font-weight: 800; color: #fff;}
+.movie-meta {font-size: 1rem; color: var(--text-muted);}
+.back-btn {background: none; border: none; color: var(--accent-red); font-size: 1.2rem; font-weight: 700; cursor: pointer; margin-right: 1.5rem; transition: color 0.2s;}
+.back-btn:hover {color:#fff;}
+.nav-links {display: flex; align-items: center; gap: 1.5rem;}
+.nav-links a {color: var(--text); font-weight: 500; text-decoration: none;opacity: 0.85; transition: color 0.2s, opacity 0.2s;}
+.nav-links a:hover,
+.nav-links a.active {color: var(--accent); opacity: 1;}
+
+.payment-breakdown {margin-top: 0.5rem; font-size: 0.95rem; color: var(--muted);}
+.payment-breakdown div {display: flex; justify-content: space-between; margin: 4px 0;}
+.total-row {font-size: 1.1rem; color: #fff; margin-top: 8px;}
+.extra-info {margin-top: 1.2rem; font-size: 0.9rem; color: var(--muted); line-height: 1.4;}
+
+.footer {width: 100vw; background: #181818; color: #b0b0b8; text-align: center; padding: 2.5rem 1rem 1.5rem 1rem; font-size: 1rem; border-top: 1px solid #23232a; margin-top: 2rem; flex-shrink: 0; position: relative; left: 50%; right: 50%; transform: translateX(-50%);}
+.footer-content {max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;}
+.footer-links {display: flex; justify-content: center; gap: 2rem; margin-bottom: 2rem; flex-wrap: wrap;}
+.footer-links a {color: #fff; text-decoration: none; opacity: 0.7; font-weight: 500; font-size: 1.05rem; transition: color 0.2s, opacity 0.2s;}
+.footer-links a:hover {color: #e74c3c; opacity: 1;}
+.footer p {opacity: 0.7; font-size: 1rem; margin: 0.2rem 0;}
+#userAreaPlaceholder{ margin-left:10px }
+.user-area{ display:inline-flex; align-items:center; gap:8px; padding:6px 8px; border-radius:10px }
+.user-avatar{ width:34px; height:34px; border-radius:50%; background: linear-gradient(135deg,#2b2b2f,#0f1113); display:inline-flex; align-items:center; justify-content:center; color:#fff; font-weight:700; border:1px solid rgba(255,255,255,0.06) }
+.user-greet{ color:#fff; font-weight:600 }
+.user-area {display: flex; align-items: center; gap: 0.75rem; cursor: pointer; padding: 0.25rem 0.5rem; border-radius: 12px; transition: background 0.18s;}
+.user-area:hover { background: rgba(255,255,255,0.02); }
+.user-avatar {width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg,#2b2b2f,#111); display: inline-flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; box-shadow: 0 4px 14px #0008; border: 1px solid rgba(255,255,255,0.06);}
+.user-greet { font-size: 0.98rem; color: var(--text); font-weight:600; }
+.user-panel-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 400; opacity:0; visibility:hidden; transition:opacity .18s; }
+.user-panel { position: fixed; top: 0; right: 0; width: 360px; height: 100vh; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); backdrop-filter: blur(8px); box-shadow: -12px 0 40px #000a; z-index: 401; transform: translateX(110%); transition: transform .25s ease; border-left:1px solid rgba(255,255,255,0.04); padding: 1.2rem 1.2rem 3rem; display:flex; flex-direction:column; gap: 1rem; }
+.user-panel.open { transform: translateX(0); }
+.user-panel-backdrop.open { opacity:1; visibility:visible; }
+.user-panel .panel-header { display:flex; gap: 1rem; align-items:center; }
+.user-panel .panel-header .avatar-big { width:68px; height:68px; border-radius:50%; background:#222; display:inline-flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:1.2rem; border:1px solid rgba(255,255,255,0.04);}
+.user-panel h3 { margin:0; font-size:1.2rem; }
+.user-panel .menu { margin-top: 8px; display:flex; flex-direction:column; gap: 8px; }
+.user-panel .menu a, .user-panel .menu button { text-align:left; background:none; border:none; color:var(--text); padding: 10px 8px; border-radius:8px; cursor:pointer; font-weight:600;}
+.user-panel .menu a:hover, .user-panel .menu button:hover { background: rgba(255,255,255,0.02); color: var(--accent); }
+.user-panel .signout { margin-top:18px; border-radius:12px; padding:12px; background: var(--accent-gradient); color:#fff; font-weight:700; box-shadow: 0 8px 24px rgba(66,133,244,0.12); border:none; cursor:pointer;}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loader {display: inline-block; width: 16px; height: 16px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; margin-left: 8px; animation: spin 1s linear infinite;}
+@media (max-width: 900px) {
+.main-content-wrap { padding: 0 0.5rem; }
+.movie-poster { width: 50px; height: 70px; }
+}
+h2{font-weight:800;margin-bottom:1rem;}
+.payment-methods button{display:block;width:100%;text-align:left;padding:0.8rem 1rem;margin-bottom:0.7rem;border-radius:12px;border:2px solid #333;background:transparent;color:#fff;cursor:pointer;font-weight:600;transition:all 0.2s;}
+.payment-methods button.active{border-color:var(--accent);background:var(--accent-gradient);}
+.pay-btn{background:var(--accent-gradient);color:#fff;font-weight:700;border:none;border-radius:12px;padding:0.8rem 2rem;cursor:pointer;box-shadow:0 2px 16px #4285f433;margin-top:1rem;width:100%;font-size:1.1rem;}
+.pay-btn:disabled{background:#23232a;color:#888;cursor:not-allowed;}
+.ticket-summary table{width:100%;border-collapse:collapse;margin-bottom:1rem;}
+.ticket-summary th, .ticket-summary td{padding:0.5rem;text-align:left;font-weight:600;}
+.confirmation{text-align:center;}
+.confirmation h2{color:#34a853;}
+footer{width:100vw;background:#181818;color:#b0b0b8;text-align:center;padding:2.5rem 1rem 1.5rem 1rem;border-top:1px solid #23232a;}
+</style>
+</head>
+<body>
+<nav class="navbar">
+  <div class="logo">Ocassio</div>
+  <div class="nav-links">
+    <a href="{% url 'movies:home' %}">Movies</a>
+    <a href="{% url 'sports:home' %}">Sports</a>
+    <a href="#">Events</a>
+    <a href="{% url 'offers:home' %}">Offers</a>
+    <a href="{% url 'giftcards:home' %}">Gift Cards</a>
+    <div id="userAreaPlaceholder">
+      {% if user.is_authenticated %}
+      <div class="user-area" onclick="toggleUserPanel()">
+        <div class="user-avatar">{{ user.username|slice:":1"|upper }}</div>
+        <div class="user-greet">Hi, {{ user.first_name|default:user.username }}</div>
+      </div>
+      {% else %}
+        <button class="sign-btn" id="signBtn" onclick='window.location.href="{% url 'accounts:login' %}"'>Sign In/Sign Up</button>
+      {% endif %}
+    </div>
+  </div>
+</nav>
+<div class="main-content-wrap">
+  <div id="modalBg" style="display:none;"></div>
+    <div class="top-section">
+      <button class="back-btn" onclick="window.history.back()">&#8592; Back</button>
+      <img class="movie-poster" src="{% if match.image %}{% static match.image %}{% else %}{% static 'sports/default_match.jpg' %}{% endif %}" alt="{{ match.title }}"/>
+      <div class="movie-details">
+        <div class="movie-title">{{ match.title }}</div>
+        <div class="movie-meta">📍 {{ match.venue }}<br>{{ match.date }} | {{ match.category }}</div>
+      </div>
+    </div>
+    <div class="progress-bar">
+      <span class="progress-step"><span class="progress-dot"></span>1. Select Seats</span>
+      <span class="progress-step active"><span class="progress-dot"></span>2. Payment</span>
+      <span class="progress-step"><span class="progress-dot"></span>3. Confirmation</span>
+    </div>
+    <!-- Payment Section -->
+    <div id="paymentSection" class="section active">
+      <h2>Payment</h2>
+      <div class="ticket-summary">
+        <h3>Your Booking</h3>
+        <table id="seatSummary">
+          <thead><tr><th>Stand</th><th>Tickets</th><th>Price</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <hr>
+        <div class="payment-breakdown">
+          <div><span>Base Amount</span> <span id="baseAmount">₹0</span></div>
+          <div><span>Convenience Fee (5%)</span> <span id="convFee">₹0</span></div>
+          <div><span>GST (18%)</span> <span id="gstFee">₹0</span></div>
+          <hr>
+          <div class="total-row"><strong>Total Payable</strong> <strong id="totalAmount">₹0</strong></div>
+        </div>
+        <div class="extra-info">
+          <p>📍 <strong>Venue:</strong> {{ match.venue }}</p>
+          <p>📅 <strong>Date:</strong> {{ match.date }}</p>
+          <p>🎫 <strong>Match:</strong> {{ match.title }}</p>
+        </div>
+      </div>
+      <div class="payment-methods">
+        <h3>Choose Payment Method</h3>
+        <button data-method="Card"><img src="{% static 'sports/icons/card.png' %}" width="24" height="24" style="margin-right:8px;vertical-align:middle;">Credit / Debit Card</button>
+        <button data-method="UPI"><img src="{% static 'sports/icons/upi.svg' %}" width="24" height="24" style="margin-right:8px;vertical-align:middle;">UPI / Wallet</button>
+        <button data-method="NetBanking"><img src="{% static 'sports/icons/net_banking.png' %}" width="24" height="24" style="margin-right:8px;vertical-align:middle;">Net Banking</button>
+        <button data-method="PayLater"><img src="{% static 'sports/icons/pay_later.png' %}" width="24" height="24" style="margin-right:8px;vertical-align:middle;">Pay Later</button>
+      </div>
+      <button class="pay-btn" id="payBtn" disabled>Pay Now</button>
+    </div>
+  </div>
+<footer class="footer">
+  <div class="footer-content">
+    <div class="footer-links">
+      <a href="#">About Us</a>
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">FAQ</a>
+      <a href="#">Contact</a>
+      <a href="#">Careers</a>
+      <a href="#">Press</a>
+    </div>
+    <p>Available in 50+ cities across India. Experience the future of movie booking.</p>
+    <p style="margin-top: 1rem; font-size: 0.8rem; opacity: 0.5;">
+      © 2024 Ocassio. All rights reserved. Prices and availability subject to change.
+    </p>
+    <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.75; display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap;">
+      Designed by <strong>Krish Koli</strong> •
+      <a href="https://instagram.com/krishkoli021" target="_blank" style="color: #4285f4; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/instagram-new.png" alt="Instagram" style="width: 16px; height: 16px;">
+        @krishkoli021
+      </a>
+    </p>
+    <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.75; display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap;">
+      Developed by <strong>Pratham Mendon</strong> •
+      <a href="https://instagram.com/prathammendon12" target="_blank" style="color: #4285f4; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+      <img src="https://img.icons8.com/ios-filled/50/ffffff/instagram-new.png" alt="Instagram" style="width: 16px; height: 16px;">
+        @prathammendon12
+      </a>
+    </p>
+  </div>
+</footer>
+<!-- User panel injected for session-aware navbar -->
+<div id="userPanelBackdrop" class="user-panel-backdrop" onclick="closeUserPanel()"></div>
+<aside id="userPanel" class="user-panel" aria-hidden="true">
+  <div class="panel-header">
+    <div id="panelAvatar" class="avatar-big">
+      {% if request.user.is_authenticated %}{{ request.user.username|slice:":1"|upper }}{% else %}G{% endif %}
+    </div>
+    <div>
+      <div id="panelName" class="panel-name">
+        {% if request.user.is_authenticated %}{{ request.user.first_name|default:request.user.username }}{% else %}Guest{% endif %}
+      </div>
+      <div id="panelEmail" style="opacity:.8;font-size:.95rem;color:var(--text-muted)" class="panel-email">
+        {% if request.user.is_authenticated %}{{ request.user.email }}{% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="menu">
+      <button onclick="openProfile()">Edit Profile</button>
+      <button onclick="openOrders()">Your Orders</button>
+      <button onclick="openStream()">Stream Library</button>
+      <button onclick="openHelp()">Help & Support</button>
+      <button onclick="openSettings()">Accounts & Settings</button>
+      <button onclick="openRewards()">Rewards</button>
+  </div>
+  <button class="signout" onclick="signOut()">Sign out</button>
+  </aside>
+  <script>
+    function updateUserArea() {
+        const placeholder = document.getElementById('userAreaPlaceholder');
+        if (!placeholder) return;
+        {% if user.is_authenticated %}
+            const initial = "{{ user.username|slice:":1"|upper }}";
+            const name = "{{ user.first_name|default:user.username }}";
+            placeholder.innerHTML = `
+                <div class="user-area" onclick="toggleUserPanel()">
+                    <div class="user-avatar">${initial}</div>
+                    <div class="user-greet">Hi, ${name}</div>
+                </div>`;
+        {% else %}
+            placeholder.innerHTML = `<button class="sign-btn" onclick="window.location.href='{% url "accounts:login" %}'">Sign In / Sign Up</button>`;
+        {% endif %}
+    }
+    // --- User Panel Toggle ---
+    function toggleUserPanel() {
+        const backdrop = document.getElementById('userPanelBackdrop');
+        const panel = document.getElementById('userPanel');
+        const isOpen = panel.classList.toggle('open');
+        backdrop.classList.toggle('open', isOpen);
+        panel.setAttribute('aria-hidden', !isOpen);
+    }
+    function closeUserPanel() {
+        const backdrop = document.getElementById('userPanelBackdrop');
+        const panel = document.getElementById('userPanel');
+        panel.classList.remove('open');
+        backdrop.classList.remove('open');
+        panel.setAttribute('aria-hidden', 'true');
+    }
+    // --- Sign Out ---
+    function signOut() {
+        closeUserPanel();
+        window.location.href = "{% url 'accounts:logout' %}";
+    }
+    // --- Demo panel navigation ---
+    function openProfile() { window.location.href = "{% url 'accounts:profile' %}"; }
+    function openOrders() { alert('Your Orders - not implemented yet'); }
+    function openStream() { alert('Stream Library - not implemented yet'); }
+    function openHelp() { alert('Help & Support - not implemented yet'); }
+    function openSettings() { alert('Accounts & Settings - not implemented yet'); }
+    function openRewards() { alert('Rewards - not implemented yet'); }
+    // --- Initialize on DOMContentLoaded ---
+    document.addEventListener('DOMContentLoaded', function() {
+        updateUserArea();
+    });
+  </script>
+  <style>
+    .modal-bg-occ {position: fixed; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.55); z-index: 1000; display: flex; align-items: center; justify-content: center; animation: fadeInModalBg 0.2s;}
+    .modal-occ {background: var(--bg-glass); border-radius: 22px; box-shadow: 0 8px 32px #23232a66; padding: 2.5rem 2.5rem 2rem 2.5rem; min-width: 340px; max-width: 95vw;text-align: center; position: relative; animation: fadeInModal 0.2s; color: #fff; border: 1.5px solid #4285f4; backdrop-filter: blur(12px);}
+    .modal-occ h2 {font-size: 1.3rem; font-weight: 800; margin-bottom: 1.2rem; color: #fff;}
+    .modal-occ .seat-counts {display: flex; gap: 0.7rem; justify-content: center; margin: 1.2rem 0 1.5rem 0;}
+    .modal-occ .seat-count-btn {width: 36px; height: 36px; border-radius: 50%; border: 2px solid #4285f4; background: transparent; color: #fff; font-size: 1.1rem; font-weight: 700; margin: 0 0.2rem; cursor: pointer; transition: background 0.18s, color 0.18s, border 0.18s;}
+    .modal-occ .seat-count-btn.selected {background: var(--accent-gradient); color: #fff; border-color: #34a853; box-shadow: 0 2px 12px #4285f433;}
+    .modal-occ .seat-types-row {display: flex; gap: 1.5rem; justify-content: center; margin: 1.2rem 0 1.5rem 0;}
+    .modal-occ .seat-type {display: flex; flex-direction: column; align-items: center; font-size: 1rem; font-weight: 600; min-width: 80px;}
+    .modal-occ .type-label {color: #b0b0b8; font-size: 0.98rem; font-weight: 500;}
+    .modal-occ .type-price {font-size: 1.1rem; font-weight: 700; color: #fff;}
+    .modal-occ .type-status.available { color: #34a853; }
+    .modal-occ .type-status.filling { color: #ffd600; }
+    .modal-occ .type-status.almost { color: #ff9800; }
+    .modal-occ .select-seats-btn {background: var(--accent-gradient); color: #fff; font-size: 1.1rem; font-weight: 700; border: none; border-radius: 12px; padding: 0.7rem 2.5rem; margin-top: 1.5rem; cursor: pointer; box-shadow: 0 2px 16px #4285f433; transition: background 0.2s, box-shadow 0.2s;}
+    .modal-occ .select-seats-btn:disabled {background: #23232a; color: #888; cursor: not-allowed; opacity: 0.7;}
+    .modal-occ .close-btn {position: absolute; top: 1.2rem; right: 1.2rem; background: none; border: none; font-size: 1.5rem; color: #888; cursor: pointer; transition: color 0.2s;}
+    .modal-occ .close-btn:hover { color: #4285f4; }
+    .modal-occ img { margin:0.5rem auto 1.2rem auto; }
+  </style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+<script>
+// --- SPORTS PAYMENT SCRIPT ---
+const posterPath = "{% if match.image %}{% static match.image %}{% else %}{% static 'sports/default_match.jpg' %}{% endif %}";
+
+// Load selected stand/bay info from sessionStorage
+const selectedBay = JSON.parse(sessionStorage.getItem('selectedBay') || '{}');
+const totalTickets = parseInt(sessionStorage.getItem('ticketCount') || '0');
+const totalPrice = parseInt(sessionStorage.getItem('totalPrice') || '0');
+
+const seatSummaryBody = document.querySelector('#seatSummary tbody');
+const totalAmountSpan = document.getElementById('totalAmount');
+const payBtn = document.getElementById('payBtn');
+const paymentButtons = document.querySelectorAll('.payment-methods button');
+
+let selectedMethod = null;
+// Render summary
+function renderPaymentSummary() {
+  seatSummaryBody.innerHTML = '';
+  if (Object.keys(selectedBay).length === 0) return;
+
+  const subtotal = selectedBay.price * totalTickets;
+  const convFee = Math.round(subtotal * 0.05);
+  const gstFee = Math.round((subtotal + convFee) * 0.18);
+  const totalPayable = subtotal + convFee + gstFee;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td>${selectedBay.standName} (Ring ${selectedBay.ring})</td>
+    <td>${totalTickets}</td>
+    <td>₹${subtotal.toLocaleString('en-IN')}</td>
+  `;
+  seatSummaryBody.appendChild(tr);
+
+  document.getElementById('baseAmount').innerText = `₹${subtotal.toLocaleString('en-IN')}`;
+  document.getElementById('convFee').innerText = `₹${convFee.toLocaleString('en-IN')}`;
+  document.getElementById('gstFee').innerText = `₹${gstFee.toLocaleString('en-IN')}`;
+  document.getElementById('totalAmount').innerText = `₹${totalPayable.toLocaleString('en-IN')}`;
+  payBtn.disabled = false;
+}
+renderPaymentSummary();
+
+// Payment method selection
+paymentButtons.forEach(btn => {
+  btn.onclick = () => {
+    paymentButtons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedMethod = btn.dataset.method;
+  };
+});
+
+// Handle Pay Now
+payBtn.onclick = async () => {
+  if (!selectedMethod) {
+    alert('Please select a payment method.');
+    return;
+  }
+  payBtn.disabled = true;
+  payBtn.innerHTML = 'Processing <span class="loader"></span>';
+
+  try {
+    const response = await fetch('/sports/confirm_booking/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken'),
+      },
+      body: JSON.stringify({
+        bays: [selectedBay.id],
+        total: totalPrice,
+        tickets: totalTickets,
+        payment_method: selectedMethod,
+      }),
+    });
+
+    const data = await response.json();
+    await new Promise(res => setTimeout(res, 2000));
+
+    if (data.status === 'success') {
+      sessionStorage.setItem('confirmedBay', JSON.stringify(selectedBay));
+      sessionStorage.setItem('confirmedTotal', totalPrice);
+      sessionStorage.setItem('confirmedMethod', selectedMethod);
+      sessionStorage.setItem('confirmedMatch', '{{ match.title }}');
+      sessionStorage.setItem('confirmedVenue', '{{ match.venue }}');
+      sessionStorage.setItem('confirmedDate', '{{ match.date }}');
+      sessionStorage.setItem('confirmedPoster', posterPath);
+      sessionStorage.setItem('ticketCount', sessionStorage.getItem('ticketCount') || seatCount || 1);
+      sessionStorage.removeItem('selectedBay');
+      sessionStorage.removeItem('totalPrice');
+      // Redirect to confirmation
+      window.location.href = `/sports/{{ match.slug }}/confirmation/`;
+    } else {
+      alert('Booking failed: ' + data.message);
+      payBtn.disabled = false;
+      payBtn.textContent = "Pay Now";
+    }
+  } catch (error) {
+    console.error("Error confirming booking:", error);
+    alert('An error occurred while confirming payment.');
+    payBtn.disabled = false;
+    payBtn.textContent = "Pay Now";
+  }
+};
+
+// Function to get CSRF token (for Django POST)
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.startsWith(name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+</script>
+</body>
+</html>

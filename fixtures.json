@@ -1,0 +1,86 @@
+[
+  {
+    "model": "sports.SportsMatch",
+    "fields": {
+      "title": "India Women vs South Africa Women",
+      "venue": "🏏 Wankhede Stadium, Mumbai",
+      "date": "2025-10-18",
+      "category": "Cricket, Women's ODI World Cup",
+      "image": "sports/indvsrsa.jpg",
+      "description": "The Indian Women take on South Africa in an electrifying ODI World Cup encounter at Wankhede. Expect big crowds, big hits, and world-class cricket!",
+      "slug": "indvsrsa"
+    }
+  },
+  {
+    "model": "sports.SportsMatch",
+    "fields": {
+      "title": "India Women vs Australia Women",
+      "venue": "🏏 DY Patil Stadium, Navi Mumbai",
+      "date": "2025-10-22",
+      "category": "Cricket, Women's ODI World Cup",
+      "image": "sports/indvsaus.jpg",
+      "description": "A thrilling Women's ODI World Cup fixture as India faces the defending champions Australia under the lights of DY Patil Stadium.",
+      "slug": "indvsaus"
+    }
+  },
+  {
+    "model": "sports.SportsMatch",
+    "fields": {
+      "title": "Australia Women vs England Women",
+      "venue": "🏏 MCG, Melbourne",
+      "date": "2025-10-28",
+      "category": "Cricket, Women's ODI World Cup",
+      "image": "sports/ausvseng.jpg",
+      "description": "The legendary Ashes rivalry continues in the Women's ODI World Cup. Australia and England clash in a high-intensity group stage match at the MCG.",
+      "slug": "ausvseng"
+    }
+  },
+  {
+    "model": "sports.SportsMatch",
+    "fields": {
+      "title": "Australia Women vs South Africa Women",
+      "venue": "🏏 SCG, Sydney",
+      "date": "2025-10-30",
+      "category": "Cricket, Women's ODI World Cup",
+      "image": "sports/ausvsrsa.jpg",
+      "description": "Australia faces South Africa in a crucial World Cup group stage match at the Sydney Cricket Ground. Expect tight bowling and tactical brilliance.",
+      "slug": "ausvsrsa"
+    }
+  },
+  {
+    "model": "sports.SportsMatch",
+    "fields": {
+      "title": "India Women vs Bangladesh Women",
+      "venue": "🏏 Eden Gardens, Kolkata",
+      "date": "2025-11-02",
+      "category": "Cricket, Women's ODI World Cup",
+      "image": "sports/indvsban.jpg",
+      "description": "A subcontinental battle full of passion and skill as India takes on Bangladesh Women at the iconic Eden Gardens.",
+      "slug": "indvsban"
+    }
+  },
+  {
+    "model": "sports.SportsMatch",
+    "fields": {
+      "title": "India Women vs New Zealand Women",
+      "venue": "🏏 Narendra Modi Stadium, Ahmedabad",
+      "date": "2025-11-07",
+      "category": "Cricket, Women's ODI World Cup",
+      "image": "sports/indvsnz.jpg",
+      "description": "A key clash between two top teams — India and New Zealand Women — in front of a massive crowd at the Narendra Modi Stadium.",
+      "slug": "indvsnz"
+    }
+  },
+  {
+    "model": "sports.SportsMatch",
+    "fields": {
+      "title": "Sri Lanka Women vs Bangladesh Women",
+      "venue": "🏏 R. Premadasa Stadium, Colombo",
+      "date": "2025-11-10",
+      "category": "Cricket, Women's ODI World Cup",
+      "image": "sports/slvsban.jpg",
+      "description": "An exciting all-Asian contest as Sri Lanka and Bangladesh Women face off in a crucial World Cup group stage match at R. Premadasa Stadium.",
+      "slug": "slvsban"
+    }
+  }
+]

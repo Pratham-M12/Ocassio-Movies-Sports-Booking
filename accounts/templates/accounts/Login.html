@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ocassio - Login / Sign Up</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {font-family: 'Inter', sans-serif; background: #000; color: white; min-height: 100vh; overflow-x: hidden;}
+    .navbar {position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.6); backdrop-filter: blur(10px);}
+    .logo { font-weight: 800; }
+    .navbar a {color: #fff; text-decoration: none; opacity: .85; margin-left: 1.25rem;}
+    .navbar a:hover { opacity: 1; }
+    .hero {height: 100vh; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden;}
+    .video-bg, .overlay {position: absolute; inset: 0;}
+    .video-bg iframe {position: absolute; top: 50%; left: 50%; min-width: 100%; min-height: 100%; width: auto; height: auto; transform: translate(-50%, -50%);}
+    .overlay {background: radial-gradient(60% 50% at 50% 20%, rgba(0,0,0,0) 0%, rgba(0,0,0,0.25) 60%, rgba(0,0,0,0.6) 100%), linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 40%, rgba(0,0,0,0.85) 100%); pointer-events: none;}
+    .hero::before, .hero::after {content: ""; position: absolute; width: 60vw; height: 60vw; border-radius: 50%; filter: blur(80px); opacity: .35; mix-blend-mode: screen; pointer-events: none;}
+    .hero::before {background: radial-gradient(closest-side, rgba(66,133,244,.6), rgba(66,133,244,0)); top: -10vh; left: -10vw; animation: floatA 14s ease-in-out infinite alternate;}
+    .hero::after {background: radial-gradient(closest-side, rgba(52,168,83,.6), rgba(52,168,83,0)); bottom: -15vh; right: -10vw; animation: floatB 18s ease-in-out infinite alternate;}
+    @keyframes floatA {
+      0% { transform: translate(0,0) scale(1); }
+      100% { transform: translate(6vw, 4vh) scale(1.1); }
+    }
+    @keyframes floatB {
+      0% { transform: translate(0,0) scale(1); }
+      100% { transform: translate(-5vw, -3vh) scale(1.05); }
+    }
+    .auth-box {background: rgba(255, 255, 255, 0.06); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 2.5rem; width: 100%; max-width: 420px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4); position: relative; z-index: 1;}
+    .auth-box h2 {text-align: center; margin-bottom: 1.5rem; font-size: 2rem;}
+    .toggle {display: flex; justify-content: space-around; margin-bottom: 2rem;}
+    .toggle button {flex: 1; margin: 0 5px; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-weight: 500; background: rgba(255, 255, 255, 0.1); color: white;}
+    .toggle button.active {background: linear-gradient(135deg, #4285f4, #34a853);}
+    form {display: none; flex-direction: column; gap: 1rem;}
+    form.active {display: flex;}
+    input {background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); padding: 12px; border-radius: 8px; color: white; font-size: 1rem;}
+    input::placeholder {color: rgba(255,255,255,0.6);}
+    .submit-btn {background: linear-gradient(135deg, #4285f4, #34a853); border: none; padding: 12px; color: white; font-weight: bold; border-radius: 8px; cursor: pointer;}
+    .social {margin-top: 1.5rem; display: flex; flex-direction: column; gap: 12px;}
+    .social button {display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; font-size: 0.95rem;}
+    .google-btn {background: white; color: black;}
+    .apple-btn {background: black; color: white; border: 1px solid white;}
+    .social img {width: 20px;}
+    @media (max-width: 480px) {
+      .auth-box { margin: 0 16px; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo">Ocassio</div>
+    <div><a href="{% url 'home' %}">Home</a></div>
+  </nav>
+
+  <section class="hero">
+    <div class="video-bg">
+      <iframe src="https://www.youtube.com/embed/nb_fFj_0rq8?autoplay=1&mute=1&loop=1&playlist=nb_fFj_0rq8&controls=0&showinfo=0&rel=0&iv_load_policy=3&modestbranding=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+    </div>
+    <div class="overlay"></div>
+
+    <div class="auth-box" data-aos="zoom-in">
+      <h2>Welcome</h2>
+
+      <div class="toggle">
+        <button class="tab-btn active" onclick="switchForm('login')">Login</button>
+        <button class="tab-btn" onclick="switchForm('signup')">Sign Up</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="login" class="active" method="POST" action="{% url 'accounts:login' %}">
+        {% csrf_token %}
+        {% for field in login_form %}
+          {{ field }}
+          {% for error in field.errors %}
+            <p style="color:red; text-align:center;">{{ error }}</p>
+          {% endfor %}
+        {% endfor %}
+        {% for error in login_form.non_field_errors %}
+          <p style="color:red; text-align:center;">{{ error }}</p>
+        {% endfor %}
+        <button class="submit-btn" type="submit">Login</button>
+      </form>
+
+      <!-- Sign Up Form -->
+      <form id="signup" method="POST" action="{% url 'accounts:signup' %}">
+        {% csrf_token %}
+        {% for field in signup_form %}
+          {{ field }}
+          {% for error in field.errors %}
+            <p style="color:red; text-align:center;">{{ error }}</p>
+          {% endfor %}
+        {% endfor %}
+        {% for error in signup_form.non_field_errors %}
+          <p style="color:red; text-align:center;">{{ error }}</p>
+        {% endfor %}
+        <button class="submit-btn" type="submit">Sign Up</button>
+      </form>
+
+      <div class="social">
+        <button class="google-btn">
+          <img src="https://img.icons8.com/color/48/google-logo.png" alt="Google logo">
+          Continue with Google
+        </button>
+        <button class="apple-btn">
+          <img src="https://img.icons8.com/ios-filled/50/ffffff/mac-os.png" alt="Apple logo">
+          Continue with Apple
+        </button>
+      </div>
+    </div>
+  </section>
+<script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+<script>
+  // Initialize AOS (animations)
+  AOS.init({ duration: 800, easing: 'ease-in-out', once: true });
+
+  function switchForm(type) {
+    document.querySelectorAll('.tab-btn').forEach(btn=>btn.classList.remove('active'));
+    document.querySelectorAll('form').forEach(f=>f.classList.remove('active'));
+    document.querySelector(`.tab-btn[onclick="switchForm('${type}')"]`)?.classList.add('active');
+    document.getElementById(type)?.classList.add('active');
+    }
+</script>
+
+</body>
+</html>

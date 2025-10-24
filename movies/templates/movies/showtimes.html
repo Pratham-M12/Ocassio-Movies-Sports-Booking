@@ -1,0 +1,290 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{{ movie.title }} - Book Tickets | Ocassio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    /* Showtime price popup */
+    .showtime-popup {display: none; position: absolute; left: 50%; top: -90px; transform: translateX(-50%); background: #fff; color: #222; border-radius: 14px; box-shadow: 0 4px 24px #23232a33; padding: 1rem 1.2rem 0.7rem 1.2rem; min-width: 260px; z-index: 10; font-size: 1rem; font-family: 'Inter', sans-serif; font-weight: 500; border: 1px solid #e0e0e0; animation: fadeInPopup 0.18s cubic-bezier(.4,0,.2,1);}
+    @keyframes fadeInPopup {
+      from { opacity: 0; transform: translateY(20px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .showtime:hover .showtime-popup,
+    .showtime:focus .showtime-popup {display: block;}
+    .showtime {display: inline-block; background-color: #00c853; color: white; padding: 8px 12px; border-radius: 6px; margin: 6px; font-weight: 600; position: relative; text-decoration: none; transition: all 0.2s ease-in-out;}
+    .showtime-popup-row {display: flex; align-items: center; gap: 0.7rem; margin-bottom: 0.3rem; font-size: 0.98rem;}
+    .showtime-popup-price { font-weight: 700; min-width: 70px; }
+    .showtime-popup-type { font-size: 0.97rem; color: #666; min-width: 80px; }
+    .showtime-popup-status { font-size: 0.97rem; font-weight: 600; }
+    .showtime-popup-status.available { color: #34a853; }
+    .showtime-popup-status.filling { color: #ffb300; }
+    .showtime-popup-status.full { color: #e53935; }
+    .showtime-popup-status.almost { color: #ff9800; }
+    :root {
+      --bg-dark: #000;
+      --bg-glass: rgba(0,0,0,0.8);
+      --accent: #4285f4;
+      --accent-green: #34a853;
+      --accent-gradient: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+      --text: #fff;
+      --text-muted: #b0b0b8;
+      --radius: 18px;
+      --available: #34a853;
+      --fast-filling: #ffb300;
+    }
+    body{background:var(--bg-dark); color: var(--text); font-family:'Inter',sans-serif; margin:0; min-height:100vh; display:flex; flex-direction:column;}
+    .navbar {position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 2.5rem; background: var(--bg-glass); backdrop-filter: blur(10px); border-bottom: 1px solid #23232a; transition: background 0.3s;}
+    .logo {font-size: 2rem; font-weight: 800; letter-spacing: 1px; color: var(--text); text-shadow: 0 4px 24px #4285f4aa;}
+    .nav-links {display: flex; align-items: center; gap: 1.5rem;}
+    .nav-links a { color: var(--text); font-weight: 500; text-decoration: none; transition: color 0.2s, opacity 0.2s; opacity: 0.85;}
+    .nav-links a:hover,
+    .nav-links a.active { color: var(--accent); opacity: 1;}
+    .sign-btn {background: var(--accent-gradient); color: #fff; font-weight: 700; border: none; border-radius: var(--radius); padding: 0.6rem 1.5rem; margin-left: 1.5rem; cursor: pointer; font-size: 1rem; box-shadow: 0 2px 16px #4285f433; transition: transform 0.2s, box-shadow 0.2s;}
+    .sign-btn:hover {transform: translateY(-2px) scale(1.04); box-shadow: 0 8px 32px #4285f488; background: linear-gradient(135deg, #34a853 0%, #4285f4 100%);}
+    .main-content-wrap {max-width: 1100px; margin: 7.5rem auto 0 auto; padding: 0 2rem 2rem 2rem; flex: 1 0 auto;}
+    .movie-title {font-size: 2.2rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--text);}
+    .movie-meta {font-size: 1.1rem; color: var(--text-muted); margin-bottom: 1.5rem;}
+    .date-tabs {display: flex; gap: 1.2rem; margin-bottom: 1.5rem; flex-wrap: wrap;}
+    .date-tab {background: rgba(255,255,255,0.05); border: none; border-radius: 12px; padding: 0.7rem 1.2rem; font-size: 1rem; font-weight: 600; color: var(--text); cursor: pointer; transition: background 0.2s, color 0.2s; border-bottom: 3px solid transparent;}
+    .date-tab.active {background: var(--accent-gradient); color: #fff; border-bottom: 3px solid var(--accent);}
+    .filter-bar {display: flex; gap: 1.2rem; margin-bottom: 1.5rem; flex-wrap: wrap;}
+    .filter-btn {background: rgba(255,255,255,0.05); border: none; border-radius: 16px; padding: 0.5rem 1.5rem; font-size: 1rem; font-weight: 600; color: var(--text); cursor: pointer; transition: background 0.2s, color 0.2s;}
+    .filter-btn.active, .filter-btn:hover {background: var(--accent); color: #fff;}
+    .theatre-list {margin-top: 2.5rem; display: flex; flex-direction: column; gap: 2rem;}
+    .theatre-card {background: rgba(255,255,255,0.05); border-radius: var(--radius); box-shadow: 0 2px 12px #4285f422; padding: 1.5rem 2rem; display: flex; align-items: flex-start; gap: 2rem; border: 1px solid rgba(255,255,255,0.1); flex-wrap: wrap;}
+    .theatre-logo {width: 54px; height: 54px; object-fit: contain; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px #23232a33; margin-right: 1.2rem;}
+    .theatre-info {flex: 1; min-width: 200px;}
+    .theatre-name {font-size: 1.15rem; font-weight: 700; color: var(--text); margin-bottom: 0.2rem;}
+    .theatre-meta {font-size: 0.98rem; color: var(--text-muted); margin-bottom: 0.7rem;}
+    .showtimes {display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;}
+    .showtime {position: relative; background: #111; color: var(--available); border: 2px solid var(--available); border-radius: 10px; padding: 0.6rem 1.2rem; font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; cursor: pointer; transition: background 0.2s, color 0.2s, border 0.2s; box-shadow: 0 2px 8px #4285f422;}
+    .showtime.fast-filling {color: var(--fast-filling); border-color: var(--fast-filling);}
+    .showtime.soldout {color: #b0b0b8; border-color: #b0b0b8; background: #23232a; cursor: not-allowed; opacity: 0.7;}
+    .showtime-label {font-size: 0.85rem; color: #b0b0b8; margin-left: 0.5rem;}
+    .showtime.available { border-color: #00c853; color: #00c853;}
+    .showtime.filling { border-color: #ffc107; color: #ffc107; }
+    .showtime.almost { border-color: #f44336; color: #f44336; }
+    .showtime::before {content: ''; width: 10px; height: 10px; border-radius: 50%; position: absolute; top: 6px; right: 6px;}
+    .showtime.available::before { background-color: #00c853; }
+    .showtime.filling::before { background-color: #ffc107; }
+    .showtime.almost::before { background-color: #f44336; }
+    .cancel-available {color: #8ecae6; font-size: 0.95rem; margin-top: 0.3rem;}
+    @media (max-width: 900px) {
+      .main-content-wrap { padding: 0 0.5rem; }
+      .theatre-card { flex-direction: column; gap: 1rem; align-items: flex-start; }
+      .theatre-logo { margin-bottom: 0.7rem; }
+    }
+    @media (max-width: 600px) {
+      .main-content-wrap { padding: 0 0.2rem; }
+      .theatre-card { padding: 1rem; }
+      .theatre-logo { width: 40px; height: 40px; }
+    }
+    .footer {width: 100vw; background: #000; color: #b0b0b8; text-align: center; padding: 2.5rem 1rem 1.5rem 1rem; font-size: 1rem; border-top: 1px solid #23232a; margin-top: 2rem; flex-shrink: 0; position: relative; left: 50%; right: 50%; transform: translateX(-50%);}
+    .footer-content {max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;}
+    .footer-links {display: flex; justify-content: center; gap: 2rem; margin-bottom: 2rem; flex-wrap: wrap;}
+    .footer-links a {color: #fff; text-decoration: none; opacity: 0.7; font-weight: 500; font-size: 1.05rem; transition: color 0.2s, opacity 0.2s;}
+    .footer-links a:hover {color: #4285f4; opacity: 1;}
+    .footer p {opacity: 0.7; font-size: 1rem; margin: 0.2rem 0;}
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo">Ocassio</div>
+    <div class="nav-links">
+      <a href="{% url 'movies:home' %}" class="active">Movies</a>
+      <a href="{% url 'sports:home' %}">Sports</a>
+      <a href="#">Events</a>
+      <a href="{% url 'offers:home' %}">Offers</a>
+      <a href="{% url 'giftcards:home' %}">Gift Cards</a>
+      <div id="userAreaPlaceholder">
+        {% if user.is_authenticated %}
+          <div class="user-area" onclick="toggleUserPanel()">
+            <div class="user-avatar">{{ user.username|slice:":1"|upper }}</div>
+            <div class="user-greet">Hi, {{ user.first_name|default:user.username }}</div>
+          </div>
+          {% else %}
+            <button class="sign-btn" id="signBtn" onclick='window.location.href="{% url 'accounts:login' %}"'>Sign In/Sign Up</button>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+  <div id="userPanelBackdrop" class="user-panel-backdrop" onclick="closeUserPanel()"></div>
+  <aside id="userPanel" class="user-panel" aria-hidden="true">
+    <div class="panel-header">
+      <div id="panelAvatar" class="avatar-big">
+        {% if request.user.is_authenticated %}{{ request.user.username|slice:":1"|upper }}{% else %}G{% endif %}
+      </div>
+      <div>
+        <div id="panelName" class="panel-name">
+          {% if request.user.is_authenticated %}{{ request.user.first_name|default:request.user.username }}{% else %}Guest{% endif %}
+        </div>
+        <div id="panelEmail" style="opacity:.8;font-size:.95rem;color:var(--text-muted)" class="panel-email">
+          {% if request.user.is_authenticated %}{{ request.user.email }}{% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="menu">
+      <button onclick="openProfile()">Edit Profile</button>
+      <button onclick="openOrders()">Your Orders</button>
+      <button onclick="openStream()">Stream Library</button>
+      <button onclick="openHelp()">Help & Support</button>
+      <button onclick="openSettings()">Accounts & Settings</button>
+      <button onclick="openRewards()">Rewards</button>
+    </div>
+    <button class="signout" onclick="signOut()">Sign out</button>
+  </aside>
+  <style>
+    .user-panel-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 400; opacity:0; visibility:hidden; transition:opacity .18s; }
+    .user-panel { position: fixed; top: 0; right: 0; width: 360px; height: 100vh; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); backdrop-filter: blur(8px); box-shadow: -12px 0 40px #000a; z-index: 401; transform: translateX(110%); transition: transform .25s ease; border-left:1px solid rgba(255,255,255,0.04); padding: 1.2rem 1.2rem 3rem; display:flex; flex-direction:column; gap: 1rem; }
+    .user-panel.open { transform: translateX(0); }
+    .user-panel-backdrop.open { opacity:1; visibility:visible; }
+    .user-panel .panel-header { display:flex; gap: 1rem; align-items:center; }
+    .user-panel .panel-header .avatar-big { width:68px; height:68px; border-radius:50%; background:#222; display:inline-flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:1.2rem; border:1px solid rgba(255,255,255,0.04); }
+    .user-panel h3 { margin:0; font-size:1.2rem; }
+    .user-panel .menu { margin-top: 8px; display:flex; flex-direction:column; gap: 8px; }
+    .user-panel .menu a, .user-panel .menu button { text-align:left; background:none; border:none; color:var(--text); padding: 10px 8px; border-radius:8px; cursor:pointer; font-weight:600; }
+    .user-panel .menu a:hover, .user-panel .menu button:hover { background: rgba(255,255,255,0.02); color: var(--accent); }
+    .user-panel .signout { margin-top:18px; border-radius:12px; padding:12px; background: var(--accent-gradient); color:#fff; font-weight:700; box-shadow: 0 8px 24px rgba(66,133,244,0.12); border:none; cursor:pointer; }
+    #userAreaPlaceholder { margin-left: 10px; }
+    .user-area{ display:flex; align-items:center; gap:0.6rem; cursor:pointer; padding:0.2rem 0.6rem; border-radius:10px; transition:background .12s }
+    .user-area:hover{ background: rgba(255,255,255,0.03) }
+    .user-avatar{ width:34px; height:34px; border-radius:50%; background: linear-gradient(135deg,#2b2b2f,#0f1113); display:inline-flex; align-items:center; justify-content:center; color:#fff; font-weight:700; box-shadow: 0 4px 18px rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.06) }
+    .user-greet{ color:var(--text); font-weight:600; font-size:0.98rem }
+  </style>
+  <script>
+    // --- Update User Area based on Django authentication ---
+    function updateUserArea() {
+        const placeholder = document.getElementById('userAreaPlaceholder');
+        if (!placeholder) return;
+        {% if user.is_authenticated %}
+            const initial = "{{ user.username|slice:":1"|upper }}";
+            const name = "{{ user.first_name|default:user.username }}";
+            placeholder.innerHTML = `
+                <div class="user-area" onclick="toggleUserPanel()">
+                    <div class="user-avatar">${initial}</div>
+                    <div class="user-greet">Hi, ${name}</div>
+                </div>`;
+        {% else %}
+            placeholder.innerHTML = `<button class="sign-btn" onclick="window.location.href='{% url "accounts:login" %}'">Sign In / Sign Up</button>`;
+        {% endif %}
+    }
+    // --- User Panel Toggle ---
+    function toggleUserPanel() {
+        const backdrop = document.getElementById('userPanelBackdrop');
+        const panel = document.getElementById('userPanel');
+        const isOpen = panel.classList.toggle('open');
+        backdrop.classList.toggle('open', isOpen);
+        panel.setAttribute('aria-hidden', !isOpen);
+    }
+    function closeUserPanel() {
+        const backdrop = document.getElementById('userPanelBackdrop');
+        const panel = document.getElementById('userPanel');
+        panel.classList.remove('open');
+        backdrop.classList.remove('open');
+        panel.setAttribute('aria-hidden', 'true');
+    }
+    // --- Sign Out ---
+    function signOut() {
+        closeUserPanel();
+        window.location.href = "{% url 'accounts:logout' %}";
+    }
+    // --- Demo panel navigation ---
+    function openProfile() { window.location.href = "{% url 'accounts:profile' %}"; }
+    function openOrders() { alert('Your Orders - not implemented yet'); }
+    function openStream() { alert('Stream Library - not implemented yet'); }
+    function openHelp() { alert('Help & Support - not implemented yet'); }
+    function openSettings() { alert('Accounts & Settings - not implemented yet'); }
+    function openRewards() { alert('Rewards - not implemented yet'); }
+    // --- Initialize on DOMContentLoaded ---
+    document.addEventListener('DOMContentLoaded', function() {
+        updateUserArea();
+    });
+  </script>
+  <div class="main-content-wrap">
+    <div class="movie-title">{{ movie.title }}<span style="font-size:1.1rem; color:#b0b0b8;">({{ movie.language }})</span></div>
+    <div class="movie-meta">Movie runtime: {{ movie.duration }} &nbsp; | &nbsp; {{ movie.rating }} &nbsp; | &nbsp; {{ movie.genre }}</div>
+    <div class="date-tabs">
+      <button class="date-tab">Sat 04 Oct</button>
+      <button class="date-tab">Sun 05 Oct</button>
+      <button class="date-tab">Mon 06 Oct</button>
+      <button class="date-tab active">Tue 07 Oct</button>
+      <button class="date-tab">Wed 08 Oct</button>
+      <button class="date-tab">Thu 09 Oct</button>
+      <button class="date-tab">Fri 10 Oct</button>
+    </div>
+    <div class="filter-bar">
+      <button class="filter-btn active">Hindi - 2D</button>
+      <button class="filter-btn">Price Range</button>
+      <button class="filter-btn">Special Formats</button>
+      <button class="filter-btn">Preferred Time</button>
+    </div>
+    {% for theatre in theatres %}
+    <div class="theatre-card">
+      <img class="theatre-logo" src="{% static theatre.logo %}" alt="{{ theatre.name }}">
+      <div class="theatre-info">
+        <div class="theatre-name">{{ theatre.name }}</div>
+        <div class="theatre-meta">{{ theatre.meta }}</div>
+        <div class="showtimes">
+          {% for show in theatre.showtimes %}
+          <a href="{% url 'movies:seat_selection' movie_slug=movie_slug showtime_id=show.id %}" class="showtime">
+            {{ show.time }} <span style="font-size:0.9rem;color:#b0b0b8;margin-left:6px;">{{ show.format }}</span>
+            <div class="showtime-popup">
+                <div class="showtime-popup-row"><span class="showtime-popup-price">₹ 400.00</span> <span class="showtime-popup-type">NORMAL</span> <span class="showtime-popup-status available">Available</span></div>
+                <div class="showtime-popup-row"><span class="showtime-popup-price">₹ 450.00</span> <span class="showtime-popup-type">EXECUTIVE</span> <span class="showtime-popup-status available">Available</span></div>
+                <div class="showtime-popup-row"><span class="showtime-popup-price">₹ 500.00</span> <span class="showtime-popup-type">PREMIUM</span> <span class="showtime-popup-status filling">Filling Fast</span></div>
+                <div class="showtime-popup-row"><span class="showtime-popup-price">₹ 800.00</span> <span class="showtime-popup-type">VIP</span> <span class="showtime-popup-status almost">Almost Full</span></div>
+              </div>
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-links">
+        <a href="#">About Us</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+        <a href="#">FAQ</a>
+        <a href="#">Contact</a>
+        <a href="#">Careers</a>
+        <a href="#">Press</a>
+      </div>
+      <p>Available in 50+ cities across India. Experience the future of movie booking.</p>
+      <p style="margin-top: 1rem; font-size: 0.8rem; opacity: 0.5;">
+        © 2024 Ocassio. All rights reserved. Prices and availability subject to change.
+      </p>
+      <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.75; display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap;">
+        Designed by <strong>Krish Koli</strong> •
+        <a href="https://instagram.com/krishkoli021" target="_blank" style="color: #4285f4; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+          <img src="https://img.icons8.com/ios-filled/50/ffffff/instagram-new.png" alt="Instagram" style="width: 16px; height: 16px;">
+          @krishkoli021
+        </a>
+      </p>
+    </div>
+  </footer>
+  <script>
+  function hashCode(str) {
+    return str.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+  }
+  document.addEventListener("DOMContentLoaded", () => {
+    const showtimes = document.querySelectorAll(".showtime");
+    showtimes.forEach(show => {
+      const text = show.textContent.trim();
+      const hash = hashCode(text);
+      const rand = (hash % 100)/100;
+      if (rand < 0.15) show.classList.add("almost");
+      else if (rand < 0.45) show.classList.add("filling");
+      else show.classList.add("available");
+    });
+  });
+  </script>
+</body>
+</html>

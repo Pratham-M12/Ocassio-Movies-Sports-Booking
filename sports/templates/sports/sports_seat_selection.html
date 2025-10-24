@@ -1,0 +1,815 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>{{ match.title }} — Seat Selection</title>
+  <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet" />
+  <style>
+    /* condensed / important styles only - matches your dark Occasio look */
+    :root{
+      --bg: #05060a;
+      --card: #0b0c0f;
+      --muted: #9aa3ad;
+      --accent: #4285f4;
+      --accent2: #34a853;
+      --glass: rgba(255,255,255,0.03);
+      --radius: 14px;
+    }
+    *{box-sizing:border-box}
+    body{font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto; margin:0; background:linear-gradient(180deg,#030405,#061018); color:#e6eef8}
+    .navbar {position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 2.5rem; background: var(--bg-glass); backdrop-filter: blur(10px); border-bottom: 1px solid #23232a; transition: background 0.3s;}
+    .logo {font-size: 2rem; font-weight: 800; color: var(--text); text-shadow: 0 4px 24px #4285f4aa;}
+    .nav-links {display: flex; align-items: center; gap: 1.5rem;}
+    .nav-links a {color: var(--text); font-weight: 500; text-decoration: none;opacity: 0.85; transition: color 0.2s, opacity 0.2s;}
+    .nav-links a:hover,
+    .nav-links a.active {color: var(--accent); opacity: 1;}
+    .sign-btn {background: var(--accent-gradient); color: #fff; font-weight: 700; border: none; border-radius: var(--radius); padding: 0.6rem 1.5rem; margin-left: 1.5rem; cursor: pointer; font-size: 1rem; box-shadow: 0 2px 16px #4285f433; transition: transform 0.2s, box-shadow 0.2s;}
+    .sign-btn:hover {transform: translateY(-2px) scale(1.04); box-shadow: 0 8px 32px #4285f488; background: linear-gradient(135deg, #34a853 0%, #4285f4 100%);}
+    .ticket-btn {position: fixed; right: 28px; top: 120px; background: transparent; color: var(--accent); border: 2px solid var(--accent); padding: 8px 14px; border-radius: 18px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: none; z-index: 150; font-size: 0.98rem;}
+    .ticket-btn svg { width: 16px; height: 16px; display: inline-block; vertical-align: middle; }
+    .wrap{max-width:1200px;margin:3rem auto;padding:1rem;display:grid;grid-template-columns:1fr 360px;gap:1.25rem}
+    .topbar{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+    .steps{display:flex;gap:10px}
+    .step{background:var(--card);padding:8px 12px;border-radius:999px;color:var(--muted);font-weight:700}
+    .step.active{background:linear-gradient(90deg,var(--accent),var(--accent2)); color:#fff}
+    .match-meta{display:flex;gap:12px;align-items:center}
+    .poster{width:76px;height:110px;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.04)}
+    .poster img{width:100%;height:100%;object-fit:cover}
+    .meta-text h2{margin:0;font-size:1.15rem}
+    .meta-text p{margin:4px 0;color:var(--muted);font-size:0.95rem}
+
+    .top-section {display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2.2rem;}
+    .progress-bar {display: flex; align-items: center; gap: 1.2rem; margin: 2.5rem auto 1.2rem auto; justify-content: center; font-size: 1.1rem; font-weight: 600; color: var(--text-muted);}
+    .progress-step {display: flex; align-items: center; gap: 0.5rem;}
+    .progress-step.active {color: var(--accent);}
+    .progress-dot {width: 12px; height: 12px; border-radius: 50%; background: var(--accent); margin-right: 0.5rem; opacity: 0.7;}
+    .progress-step:not(:last-child)::after {content: ''; display: inline-block; width: 40px; height: 2px; background: #333; margin-left: 0.7rem; vertical-align: middle;}
+    .main-content-wrap {max-width: 1100px; margin: 7.5rem auto 0 auto; padding: 0 2rem 2rem 2rem; flex: 1 0 auto;}
+    .movie-poster {width: 70px; height: 100px; object-fit: cover; border-radius: 10px; box-shadow: 0 2px 12px #e74c3c33; background: #23232a;}
+    .movie-details {display: flex; flex-direction: column; gap: 0.3rem;}
+    .movie-title {font-size: 1.3rem; font-weight: 800; color: #fff;}
+    .movie-meta {font-size: 1rem; color: var(--text-muted);}
+    .back-btn {background: none; border: none; color: var(--accent-red); font-size: 1.2rem; font-weight: 700; cursor: pointer; margin-right: 1.5rem; transition: color 0.2s;}
+    .back-btn:hover {color:#fff;}
+
+    .stadium-layout {display: flex; justify-content: space-between; align-items: flex-start; gap: 1.8rem; margin-top: 1.5rem; max-width: 1200px; margin-left: auto; margin-right: auto;}
+    .stadium-layout .arena {flex: 1.1; max-width: 680px; margin-left: 0; margin-right: 0;}
+    .stadium-layout .summary {flex: 1; margin-left:0; max-width: 480px;}
+
+    /* Responsive stacking on small screens */
+    @media (max-width: 1000px) {
+      .stadium-layout {flex-direction: column; align-items: center;}
+      .stadium-layout .arena,
+      .stadium-layout .summary {width: 100%;}
+    }
+
+    /* stadium & layout */
+    .arena { background:var(--card); padding:18px; border-radius:12px; border:1px solid rgba(255,255,255,0.03); box-shadow:0 20px 40px rgba(0,0,0,0.6); }
+    .stadium-canvas { width:100%; height:650px; display:flex; align-items:center; justify-content:center; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:12px; position:relative }
+    .legend{display:flex; gap:10px; align-items:center; justify-content:center; margin-top:10px; color:var(--muted); text-align: center;}
+    .swatch{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+    /* summary */
+    .summary{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:18px;border:1px solid rgba(255,255,255,0.04)}
+    .summary h3{margin:0 0 10px}
+    .selected-list{margin-top:10px;display:flex;flex-direction:column;gap:8px}
+    .selected-item{display:flex;justify-content:space-between;padding:10px;border-radius:10px;background:rgba(255,255,255,0.01);font-weight:700}
+    .total{font-size:1.3rem;font-weight:900;margin-top:10px}
+    .continue-btn{margin-top:14px;width:100%;padding:12px;border-radius:10px;border:none;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;font-weight:800;cursor:pointer}
+    .continue-btn:disabled{opacity:.6;cursor:not-allowed}
+
+    /* bay focus/keyboard */
+    .bay-hit{outline: none; cursor: pointer;}
+    .bay-hit:focus{box-shadow: 0 6px 18px rgba(66,133,244,0.12);}
+
+    .footer {width: 100vw; background: #181818; color: #b0b0b8; text-align: center; padding: 2.5rem 1rem 1.5rem 1rem; font-size: 1rem; border-top: 1px solid #23232a; margin-top: 2rem; flex-shrink: 0; position: relative; left: 50%; right: 50%; transform: translateX(-50%);}
+    .footer-content {max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;}
+    .footer-links {display: flex; justify-content: center; gap: 2rem; margin-bottom: 2rem; flex-wrap: wrap;}
+    .footer-links a {color: #fff; text-decoration: none; opacity: 0.7; font-weight: 500; font-size: 1.05rem; transition: color 0.2s, opacity 0.2s;}
+    .footer-links a:hover {color: #e74c3c; opacity: 1;}
+    .footer p {opacity: 0.7; font-size: 1rem; margin: 0.2rem 0;}
+    
+    #userAreaPlaceholder{ margin-left:10px }
+    .user-area{ display:inline-flex; align-items:center; gap:8px; padding:6px 8px; border-radius:10px }
+    .user-avatar{ width:34px; height:34px; border-radius:50%; background: linear-gradient(135deg,#2b2b2f,#0f1113); display:inline-flex; align-items:center; justify-content:center; color:#fff; font-weight:700; border:1px solid rgba(255,255,255,0.06) }
+    .user-greet{ color:#fff; font-weight:600 }
+    .user-area {display: flex; align-items: center; gap: 0.75rem; cursor: pointer; padding: 0.25rem 0.5rem; border-radius: 12px; transition: background 0.18s;}
+    .user-area:hover { background: rgba(255,255,255,0.02); }
+    .user-avatar {width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg,#2b2b2f,#111); display: inline-flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; box-shadow: 0 4px 14px #0008; border: 1px solid rgba(255,255,255,0.06);}
+    .user-greet { font-size: 0.98rem; color: var(--text); font-weight:600; }
+    .user-panel-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 400; opacity:0; visibility:hidden; transition:opacity .18s; }
+    .user-panel { position: fixed; top: 0; right: 0; width: 360px; height: 100vh; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); backdrop-filter: blur(8px); box-shadow: -12px 0 40px #000a; z-index: 401; transform: translateX(110%); transition: transform .25s ease; border-left:1px solid rgba(255,255,255,0.04); padding: 1.2rem 1.2rem 3rem; display:flex; flex-direction:column; gap: 1rem; }
+    .user-panel.open { transform: translateX(0); }
+    .user-panel-backdrop.open { opacity:1; visibility:visible; }
+    .user-panel .panel-header { display:flex; gap: 1rem; align-items:center; }
+    .user-panel .panel-header .avatar-big { width:68px; height:68px; border-radius:50%; background:#222; display:inline-flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:1.2rem; border:1px solid rgba(255,255,255,0.04);}
+    .user-panel h3 { margin:0; font-size:1.2rem; }
+    .user-panel .menu { margin-top: 8px; display:flex; flex-direction:column; gap: 8px; }
+    .user-panel .menu a, .user-panel .menu button { text-align:left; background:none; border:none; color:var(--text); padding: 10px 8px; border-radius:8px; cursor:pointer; font-weight:600;}
+    .user-panel .menu a:hover, .user-panel .menu button:hover { background: rgba(255,255,255,0.02); color: var(--accent); }
+    .user-panel .signout { margin-top:18px; border-radius:12px; padding:12px; background: var(--accent-gradient); color:#fff; font-weight:700; box-shadow: 0 8px 24px rgba(66,133,244,0.12); border:none; cursor:pointer;}
+
+    .modal-bg-occ {position: fixed; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.55); z-index: 1000; display: flex; align-items: center; justify-content: center; animation: fadeInModalBg 0.2s;}
+    .modal-occ {background: var(--bg-glass); border-radius: 22px; box-shadow: 0 8px 32px #23232a66; padding: 2.5rem 2.5rem 2rem 2.5rem; min-width: 340px; max-width: 95vw;text-align: center; position: relative; animation: fadeInModal 0.2s; color: #fff; border: 1.5px solid #4285f4; backdrop-filter: blur(12px);}
+    .modal-occ h2 {font-size: 1.3rem; font-weight: 800; margin-bottom: 1.2rem; color: #fff;}
+    .modal-occ .seat-counts {display: flex; gap: 0.7rem; justify-content: center; margin: 1.2rem 0 1.5rem 0;}
+    .modal-occ .seat-count-btn {width: 36px; height: 36px; border-radius: 50%; border: 2px solid #4285f4; background: transparent; color: #fff; font-size: 1.1rem; font-weight: 700; margin: 0 0.2rem; cursor: pointer; transition: background 0.18s, color 0.18s, border 0.18s;}
+    .modal-occ .seat-count-btn.selected {background: var(--accent-gradient); color: #fff; border-color: #34a853; box-shadow: 0 2px 12px #4285f433;}
+    .modal-occ .seat-types-row {display: flex; gap: 1.5rem; justify-content: center; margin: 1.2rem 0 1.5rem 0;}
+    .modal-occ .seat-type {display: flex; flex-direction: column; align-items: center; font-size: 1rem; font-weight: 600; min-width: 80px;}
+    .modal-occ .type-label {color: #b0b0b8; font-size: 0.98rem; font-weight: 500;}
+    .modal-occ .type-price {font-size: 1.1rem; font-weight: 700; color: #fff;}
+    .modal-occ .type-status.available { color: #34a853; }
+    .modal-occ .type-status.filling { color: #ffd600; }
+    .modal-occ .type-status.almost { color: #ff9800; }
+    .modal-occ .select-seats-btn {background: var(--accent-gradient); color: #fff; font-size: 1.1rem; font-weight: 700; border: none; border-radius: 12px; padding: 0.7rem 2.5rem; margin-top: 1.5rem; cursor: pointer; box-shadow: 0 2px 16px #4285f433; transition: background 0.2s, box-shadow 0.2s;}
+    .modal-occ .select-seats-btn:disabled {background: #23232a; color: #888; cursor: not-allowed; opacity: 0.7;}
+    .modal-occ .close-btn {position: absolute; top: 1.2rem; right: 1.2rem; background: none; border: none; font-size: 1.5rem; color: #888; cursor: pointer; transition: color 0.2s;}
+    .modal-occ .close-btn:hover { color: #4285f4; }
+    .modal-occ img { margin:0.5rem auto 1.2rem auto; }
+
+    /* responsive */
+    @media (max-width:1100px) { .wrap{grid-template-columns:1fr} .stadium-canvas{height:440px} }
+  
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo">Ocassio</div>
+    <div class="nav-links">
+      <a href="{% url 'movies:home' %}">Movies</a>
+      <a href="{% url 'sports:home' %}">Sports</a>
+      <a href="#">Events</a>
+      <a href="{% url 'offers:home' %}">Offers</a>
+      <a href="{% url 'giftcards:home' %}">Gift Cards</a>
+      <div id="userAreaPlaceholder">
+        {% if user.is_authenticated %}
+        <div class="user-area" onclick="toggleUserPanel()">
+          <div class="user-avatar">{{ user.username|slice:":1"|upper }}</div>
+          <div class="user-greet">Hi, {{ user.first_name|default:user.username }}</div>
+        </div>
+        {% else %}
+          <button class="sign-btn" id="signBtn" onclick='window.location.href="{% url 'accounts:login' %}"'>Sign In/Sign Up</button>
+        {% endif %}
+      </div>
+    </div>
+    <button id="ticketBtn" class="ticket-btn" onclick="openTicketPicker()">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z" fill="#fff"/><path d="M20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="#fff"/></svg>
+      <span id="ticketLabel">10 Tickets</span>
+    </button>
+  </nav>
+  <!-- topbar (keeps your app's feel) -->
+  <div class="main-content-wrap">
+    <div id="modalBg" style="display:none;"></div>
+    <div class="top-section">
+      <button class="back-btn" onclick="window.history.back()">&#8592; Back</button>
+      <img class="movie-poster" src="{% if match.image %}{% static match.image %}{% else %}{% static 'sports/default_match.jpg' %}{% endif %}" alt="{{ match.title }}"/>
+      <div class="movie-details">
+        <div class="movie-title">{{ match.title }}</div>
+        <div class="movie-meta">📍 {{ match.venue }}<br>{{ match.date }} | {{ match.category }}</div>
+      </div>
+    </div>
+    <div class="progress-bar">
+      <span class="progress-step active"><span class="progress-dot"></span>1. Select Seats</span>
+      <span class="progress-step"><span class="progress-dot"></span>2. Payment</span>
+      <span class="progress-step"><span class="progress-dot"></span>3. Confirmation</span>
+    </div>    
+  </div>
+
+  <!-- left: stadium -->
+  <div class="stadium-layout">
+    <section class="arena" aria-label="Stadium seat selection">
+      <div class="legend" aria-hidden="true">
+        <div style="display:flex;gap:8px;align-items:center"><span class="swatch" style="background:#cfcfcf"></span> Available</div>
+        <div style="display:flex;gap:8px;align-items:center"><span class="swatch" style="background:linear-gradient(90deg,#4285f4,#34a853)"></span> Selected</div>
+        <div style="display:flex;gap:8px;align-items:center"><span class="swatch" style="background:#374151"></span> Booked</div>
+      </div>
+      <div class="stadium-canvas" id="stadiumCanvas">
+        <!-- SVG will be injected here by script -->
+      </div>
+    </section>
+
+    <!-- right: summary -->
+    <aside class="summary" aria-label="Booking summary">
+    <h3>Booking Summary</h3>
+
+    <!-- Match info -->
+    <div><strong>{{ match.title }}</strong></div>
+    <div style="color:var(--muted);font-size:13px;margin-top:6px;">
+      📍 {{ match.venue }} <br> 🗓️ {{ match.date }} • {{ match.category }}
+    </div>
+    <hr style="border:none;border-top:1px solid rgba(255,255,255,0.1);margin:10px 0;">
+
+    <div style="margin-top:8px;font-weight:700;">Your Selections</div>
+    <div id="ticketCountSummary" style="color:var(--muted);margin-top:4px;">Tickets: 0</div>
+    <div class="selected-list" id="selectedList" aria-live="polite">
+      <div style="color:var(--muted);margin-top:8px">No bays selected yet.</div>
+    </div>
+
+    <div style="margin-top:1rem;">
+      <div style="display:flex;justify-content:space-between;color:var(--muted);">
+        <span>Base Price</span><span id="basePrice">₹0</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;color:var(--muted);margin-top:4px;">
+        <span>Convenience Fee (5%)</span><span id="convFee">₹0</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;color:var(--muted);margin-top:4px;">
+        <span>GST (18%)</span><span id="gstFee">₹0</span>
+      </div>
+      <hr style="border:none;border-top:1px solid rgba(255,255,255,0.1);margin:8px 0;">
+      <div class="total" style="display:flex;justify-content:space-between;">
+        <span>Total Payable</span><span id="totalAmount">₹0</span>
+      </div>
+    </div>
+
+    <div style="margin-top:1.2rem;color:var(--muted);font-size:0.85rem;line-height:1.4;">
+      🎟️ Seats once booked cannot be cancelled.<br>
+      ⏰ Please complete payment within <strong>10 minutes</strong> to secure your selection.<br>
+      📧 E-ticket will be sent to your registered email.
+    </div>
+
+    <button id="continueBtn" class="continue-btn" disabled>Continue to Payment</button>
+  </aside>
+
+  </div>
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-links">
+        <a href="#">About Us</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+        <a href="#">FAQ</a>
+        <a href="#">Contact</a>
+        <a href="#">Careers</a>
+        <a href="#">Press</a>
+      </div>
+      <p>Available in 50+ cities across India. Experience the future of movie booking.</p>
+      <p style="margin-top: 1rem; font-size: 0.8rem; opacity: 0.5;">
+        © 2024 Ocassio. All rights reserved. Prices and availability subject to change.
+      </p>
+      <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.75; display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap;">
+        Designed by <strong>Krish Koli</strong> •
+        <a href="https://instagram.com/krishkoli021" target="_blank" style="color: #e74c3c; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+          <img src="https://img.icons8.com/ios-filled/50/ffffff/instagram-new.png" alt="Instagram" style="width: 16px; height: 16px;">
+          @krishkoli021
+        </a>
+      </p>
+      <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.75; display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap;">
+        Developed by <strong>Pratham Mendon</strong> •
+        <a href="https://instagram.com/prathammendon12" target="_blank" style="color: #4285f4; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/instagram-new.png" alt="Instagram" style="width: 16px; height: 16px;">
+          @prathammendon12
+        </a>
+      </p>
+    </div>
+  </footer>
+  <!-- User panel injected for session-aware navbar -->
+  <div id="userPanelBackdrop" class="user-panel-backdrop" onclick="closeUserPanel()"></div>
+  <aside id="userPanel" class="user-panel" aria-hidden="true">
+    <div class="panel-header">
+      <div id="panelAvatar" class="avatar-big">
+        {% if request.user.is_authenticated %}{{ request.user.username|slice:":1"|upper }}{% else %}G{% endif %}
+      </div>
+      <div>
+        <div id="panelName" class="panel-name">
+          {% if request.user.is_authenticated %}{{ request.user.first_name|default:request.user.username }}{% else %}Guest{% endif %}
+        </div>
+        <div id="panelEmail" style="opacity:.8;font-size:.95rem;color:var(--text-muted)" class="panel-email">
+          {% if request.user.is_authenticated %}{{ request.user.email }}{% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="menu">
+      <button onclick="openProfile()">Edit Profile</button>
+      <button onclick="openOrders()">Your Orders</button>
+      <button onclick="openStream()">Stream Library</button>
+      <button onclick="openHelp()">Help & Support</button>
+      <button onclick="openSettings()">Accounts & Settings</button>
+      <button onclick="openRewards()">Rewards</button>
+    </div>
+    <button class="signout" onclick="signOut()">Sign out</button>
+  </aside>
+
+  <script>
+    function updateUserArea() {
+        const placeholder = document.getElementById('userAreaPlaceholder');
+        if (!placeholder) return;
+
+        {% if user.is_authenticated %}
+            const initial = "{{ user.username|slice:":1"|upper }}";
+            const name = "{{ user.first_name|default:user.username }}";
+            placeholder.innerHTML = `
+                <div class="user-area" onclick="toggleUserPanel()">
+                    <div class="user-avatar">${initial}</div>
+                    <div class="user-greet">Hi, ${name}</div>
+                </div>`;
+        {% else %}
+            placeholder.innerHTML = `<button class="sign-btn" onclick="window.location.href='{% url "accounts:login" %}'">Sign In / Sign Up</button>`;
+        {% endif %}
+    }
+    // --- User Panel Toggle ---
+    function toggleUserPanel() {
+        const backdrop = document.getElementById('userPanelBackdrop');
+        const panel = document.getElementById('userPanel');
+        const isOpen = panel.classList.toggle('open');
+        backdrop.classList.toggle('open', isOpen);
+        panel.setAttribute('aria-hidden', !isOpen);
+    }
+    function closeUserPanel() {
+        const backdrop = document.getElementById('userPanelBackdrop');
+        const panel = document.getElementById('userPanel');
+        panel.classList.remove('open');
+        backdrop.classList.remove('open');
+        panel.setAttribute('aria-hidden', 'true');
+    }
+    // --- Sign Out ---
+    function signOut() {closeUserPanel(); window.location.href = "{% url 'accounts:logout' %}";}
+    // --- Demo panel navigation ---
+    function openProfile() { window.location.href = "{% url 'accounts:profile' %}"; }
+    function openOrders() { alert('Your Orders - not implemented yet'); }
+    function openStream() { alert('Stream Library - not implemented yet'); }
+    function openHelp() { alert('Help & Support - not implemented yet'); }
+    function openSettings() { alert('Accounts & Settings - not implemented yet'); }
+    function openRewards() { alert('Rewards - not implemented yet'); }
+    // --- Initialize on DOMContentLoaded ---
+    document.addEventListener('DOMContentLoaded', function() {updateUserArea();});
+  </script>
+  
+  <!-- CSRF setup for fetch -->
+  <script>
+    let seatCount = 10;
+    function setTicketLabel(count){
+      const lbl = document.getElementById('ticketLabel');
+      if(!lbl) return;
+      if(count && count>1) lbl.textContent = count + ' Tickets';
+      else if(count===1) lbl.textContent = '1 Ticket';
+      else lbl.textContent = 'Select Tickets';
+    }
+    function openTicketPicker(){
+      showSeatCountModal(function(count){
+        seatCount = count;
+        setTicketLabel(count);
+        selectedSeats = [];
+        renderSeatMap();
+        updateFooter();
+      });
+    }
+    // Ensure ticket label reflects default
+    document.addEventListener('DOMContentLoaded', ()=>{
+      setTicketLabel(seatCount || 10);
+    });
+    // --- Modal for seat count selection ---
+    const seatCountImgs = [
+      'https://img.icons8.com/color/96/000000/bicycle--v2.png',
+      'https://img.icons8.com/color/96/000000/scooter.png',
+      'https://img.icons8.com/color/96/000000/auto-rickshaw.png',
+      'https://img.icons8.com/color/96/000000/car--v2.png',
+      'https://img.icons8.com/color/96/000000/sedan.png',
+      'https://img.icons8.com/color/96/000000/suv.png',
+      'https://img.icons8.com/color/96/000000/van.png',
+      'https://img.icons8.com/color/96/000000/minivan.png',
+      'https://img.icons8.com/color/96/000000/bus.png',
+      'https://img.icons8.com/color/96/000000/bus.png'
+    ];
+    function showSeatCountModal(onSelect) {
+      const modalBg = document.getElementById('modalBg');
+      modalBg.innerHTML = `<div class='modal-bg-occ'><div class='modal-occ'>
+        <button class='close-btn' onclick='closeModal()'>&times;</button>
+        <h2>How many seats?</h2>
+        <img id='seatCountImg' src='${seatCountImgs[0]}' style='margin:0.5rem auto 1.2rem auto;'/>
+        <div class='seat-counts'>
+          ${Array.from({length:10},(_,i)=>`<button class='seat-count-btn' data-count='${i+1}'>${i+1}</button>`).join('')}
+        </div>
+        <div class='seat-types-row'>
+          <div class='seat-type'><span class='type-label'>EXECUTIVE</span><span class='type-price'>₹400</span><span class='type-status available'>AVAILABLE</span></div>
+          <div class='seat-type'><span class='type-label'>PREMIUM</span><span class='type-price'>₹600</span><span class='type-status filling'>FILLING FAST</span></div>
+          <div class='seat-type'><span class='type-label'>VIP</span><span class='type-price'>₹800</span><span class='type-status almost'>ALMOST FULL</span></div>
+        </div>
+        <button class='select-seats-btn' style='margin-top:1.5rem;' disabled>Select Seats</button>
+      </div></div>`;
+      
+      modalBg.style.display = 'block';
+      let selectedCount = null;
+      const img = modalBg.querySelector('#seatCountImg');
+      modalBg.querySelectorAll('.seat-count-btn').forEach((btn, idx) => {
+        btn.onclick = () => {
+          modalBg.querySelectorAll('.seat-count-btn').forEach(b=>b.classList.remove('selected'));
+          btn.classList.add('selected');
+          selectedCount = parseInt(btn.getAttribute('data-count'));
+          img.src = seatCountImgs[idx];
+          modalBg.querySelector('.select-seats-btn').disabled = false;
+        };
+      });
+      modalBg.querySelector('.select-seats-btn').onclick = () => {
+        if(selectedCount) {
+          seatCount = selectedCount;
+          closeModal();
+          if(typeof onSelect==='function') onSelect(selectedCount);
+          maxTickets = selectedCount;
+          refreshUI();
+        }
+      };
+    }
+
+    function closeModal() {
+      document.getElementById('modalBg').style.display = 'none';
+    }
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+  </script>
+
+  <!-- Build a JS array of bay data from the Django context -->
+  <script>
+    // Convert Django "stands" structure into a flat baysData array the JS layout will use.
+    // Each bay object includes:
+    //  id, label, price, is_booked (bool), standIndex (0..n-1), ring (integer), idxInStandRing, totalInStandRing
+    const stands = {{ stands_json|safe }};
+    const baysData = [];
+
+    stands.forEach((stand, sIndex) => {
+        Object.keys(stand.rings).forEach(ringKey => {
+            const ringList = stand.rings[ringKey];
+            ringList.forEach((b, idx) => {
+                baysData.push({
+                    id: b.id,
+                    label: b.code,
+                    price: b.price,
+                    is_booked: b.is_booked,
+                    standIndex: sIndex,
+                    standName: stand.name,
+                    ring: parseInt(ringKey),
+                    idxInStandRing: idx,
+                    totalInStandRing: ringList.length
+                });
+            });
+        });
+    });
+    console.log('Flattened baysData:', baysData);
+  </script>
+
+  <!-- Stadium drawing & interactivity -->
+  <script>
+    // If there are no stands/bays, show a friendly message
+    if (baysData.length === 0) {
+      document.getElementById('stadiumCanvas').innerHTML = '<div style="padding:40px;color:var(--muted)">No seating data available for this match.</div>';
+    } else {
+      // stadium geometry config
+      const viewSize = 820;
+      const center = viewSize / 2;
+      // rings: inner->outer (ring indexes should be integers 0..2)
+      // You can tweak radii if you want denser spacing
+      const ringRadii = {
+        0: { inner: 90, outer: 150 },   // ground / inner (closest to pitch)
+        1: { inner: 160, outer: 220 },  // middle
+        2: { inner: 240, outer: 300 }   // outermost
+      };
+
+      // colors
+      const COLORS = { available: '#cfcfcf', selected: 'linear-gradient(90deg,#4285f4,#34a853)', sold: '#374151' };
+      // we'll use flat colors for paths (gradients can be added if desired)
+      const COLOR_SELECTED = 'url(#selectedGradient)';
+      const COLOR_AVAILABLE = '#cfcfcf';
+      const COLOR_SOLD = '#374151';
+
+      // build basic svg
+      function buildSVG() {
+        const container = document.getElementById('stadiumCanvas');
+        container.innerHTML = '';
+        const svgNS = 'http://www.w3.org/2000/svg';
+        const svg = document.createElementNS(svgNS, 'svg');
+        svg.setAttribute('width', '100%');
+        svg.setAttribute('height', '100%');
+        svg.setAttribute('viewBox', `0 0 ${viewSize} ${viewSize}`);
+        svg.setAttribute('id', 'stadiumSvg');
+
+        const defs = document.createElementNS(svgNS, "defs");
+        const grad = document.createElementNS(svgNS, "linearGradient");
+        grad.setAttribute("id", "selectedGradient");
+        grad.setAttribute("x1", "0%");
+        grad.setAttribute("y1", "0%");
+        grad.setAttribute("x2", "100%");
+        grad.setAttribute("y2", "0%");
+        const stop1 = document.createElementNS(svgNS, "stop");
+        stop1.setAttribute("offset", "0%");
+        stop1.setAttribute("stop-color", "#4285f4");
+        const stop2 = document.createElementNS(svgNS, "stop");
+        stop2.setAttribute("offset", "100%");
+        stop2.setAttribute("stop-color", "#34a853");
+        grad.appendChild(stop1);
+        grad.appendChild(stop2);
+        defs.appendChild(grad);
+        svg.appendChild(defs);
+
+        // background circle (stadium ring)
+        const bg = document.createElementNS(svgNS, 'rect');
+        bg.setAttribute('x', 0);
+        bg.setAttribute('y', 0);
+        bg.setAttribute('width', viewSize);
+        bg.setAttribute('height', viewSize);
+        bg.setAttribute('fill', 'transparent');
+        svg.appendChild(bg);
+
+        // pitch (center)
+        const pitch = document.createElementNS(svgNS, 'circle');
+        pitch.setAttribute('cx', center);
+        pitch.setAttribute('cy', center);
+        pitch.setAttribute('r', 70);
+        pitch.setAttribute('fill', '#1f4d1f');
+        pitch.setAttribute('stroke', '#113311');
+        pitch.setAttribute('stroke-width', 6);
+        svg.appendChild(pitch);
+
+        // compute number of stands
+        const standsCount = (function(){ 
+          const s = new Set(); baysData.forEach(b=>s.add(b.standIndex)); return s.size;
+        })();
+
+        // for each stand we reserve an angular span
+        const standSpan = 360 / Math.max(standsCount, 1);
+
+        // group bays by stand & ring to compute widths
+        const byStand = {};
+        baysData.forEach(b => {
+          byStand[b.standIndex] = byStand[b.standIndex] || {};
+          byStand[b.standIndex][b.ring] = byStand[b.standIndex][b.ring] || [];
+          byStand[b.standIndex][b.ring].push(b);
+        });
+
+        // render each stand's bays
+        for (let sIndex = 0; sIndex < Object.keys(byStand).length; sIndex++) {
+          const startAngleStand = sIndex * standSpan;
+          const standObj = byStand[sIndex];
+          for (const ringKey of Object.keys(standObj).sort((a,b)=>a-b)) {
+            const ringIndex = Number(ringKey);
+            const ringBays = standObj[ringKey];
+            const visibleBays = ringBays.slice(0, 2);
+            const visibleCount = visibleBays.length;
+            for (let i=0;i<visibleCount;i++){
+              const bay = visibleBays[i];
+              // compute bay angle within stand span
+              const segStart = startAngleStand + (i * (standSpan / visibleCount)) + 1; // +1 deg padding
+              const segEnd = startAngleStand + ((i+1) * (standSpan / visibleCount)) - 1; // -1 deg padding
+              const pathD = arcPath(center, center, ringRadii[ringIndex].outer, ringRadii[ringIndex].inner, segStart, segEnd);
+              const g = document.createElementNS(svgNS, 'g');
+              g.setAttribute('data-bay-id', bay.id);
+              g.setAttribute('tabindex', 0);
+              g.classList.add('bay-hit');
+
+              const p = document.createElementNS(svgNS, 'path');
+              p.setAttribute('d', pathD);
+              p.setAttribute('fill', bay.is_booked ? COLOR_SOLD : COLOR_AVAILABLE);
+              p.setAttribute('stroke', 'rgba(0,0,0,0.15)');
+              p.setAttribute('data-price', bay.price);
+              p.setAttribute('data-label', bay.label);
+              p.setAttribute('data-booked', bay.is_booked ? '1' : '0');
+              p.style.transition = 'transform .12s, fill .12s';
+
+              // events
+              p.addEventListener('click', (ev) => {
+                ev.stopPropagation();
+                if (bay.is_booked) { return; }
+                toggleSelectBay(bay.id);
+                zoomToBay(svg, g, 1.6);
+              });
+              // --- Hover visual feedback ---
+              p.addEventListener('mouseenter', () => {
+                if (!bay.is_booked && !selectedSet.has(bay.id)) {
+                  p.setAttribute('fill', 'url(#selectedGradient)'); // light highlight when hovering over available bay
+                }
+              });
+              p.addEventListener('mouseleave', () => {
+                if (!bay.is_booked) {
+                  if (selectedSet.has(bay.id)) p.setAttribute('fill', COLOR_SELECTED);
+                  else p.setAttribute('fill', COLOR_AVAILABLE);
+                }
+              });
+              g.addEventListener('keydown', (ev) => {
+                if (ev.key === 'Enter' || ev.key === ' ') {
+                  ev.preventDefault();
+                  if (!bay.is_booked) {
+                    toggleSelectBay(bay.id);
+                    zoomToBay(svg, g, 1.6);
+                  }
+                }
+              });
+
+              // label
+              const mid = (segStart + segEnd) / 2;
+              const radians = (mid - 90) * (Math.PI/180);
+              const textR = (ringRadii[ringIndex].inner + ringRadii[ringIndex].outer) / 2;
+              const tx = center + textR * Math.cos(radians);
+              const ty = center + textR * Math.sin(radians);
+
+              const label = document.createElementNS(svgNS, 'text');
+              label.setAttribute('x', tx);
+              label.setAttribute('y', ty);
+              label.setAttribute('font-size', 10);
+              label.setAttribute('text-anchor', 'middle');
+              label.setAttribute('alignment-baseline', 'middle');
+              label.setAttribute('fill', bay.is_booked ? '#9b9b9b' : '#0a0a0a');
+              label.textContent = bay.label;
+
+              g.appendChild(p);
+              g.appendChild(label);
+              svg.appendChild(g);
+            }
+          }
+        }
+
+        // background click resets zoom and clears selection tooltip
+        svg.addEventListener('click', function(e){
+          resetZoom(svg);
+        });
+
+        document.getElementById('stadiumCanvas').appendChild(svg);
+      }
+
+      // arc path generator same math as earlier
+      function arcPath(cx, cy, rOuter, rInner, startAngle, endAngle) {
+        const a0 = (startAngle - 90) * (Math.PI / 180);
+        const a1 = (endAngle - 90) * (Math.PI / 180);
+
+        const x0 = cx + rOuter * Math.cos(a0);
+        const y0 = cy + rOuter * Math.sin(a0);
+        const x1 = cx + rOuter * Math.cos(a1);
+        const y1 = cy + rOuter * Math.sin(a1);
+
+        const x2 = cx + rInner * Math.cos(a1);
+        const y2 = cy + rInner * Math.sin(a1);
+        const x3 = cx + rInner * Math.cos(a0);
+        const y3 = cy + rInner * Math.sin(a0);
+
+        const largeArc = Math.abs(endAngle - startAngle) <= 180 ? 0 : 1;
+
+        return `M ${x0} ${y0} A ${rOuter} ${rOuter} 0 ${largeArc} 1 ${x1} ${y1} L ${x2} ${y2} A ${rInner} ${rInner} 0 ${largeArc} 0 ${x3} ${y3} Z`;
+      }
+
+      // zoom helpers (smoothly animate viewBox)
+      function animateViewBox(svg, from, to, duration = 420) {
+        const start = performance.now();
+        function step(now) {
+          const t = Math.min(1, (now - start)/ duration);
+          const ease = t < 0.5 ? 2*t*t : -1 + (4-2*t)*t;
+          const vb = from.map((v,i)=> v + (to[i]-v)*ease);
+          svg.setAttribute('viewBox', vb.join(' '));
+          if (t < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+      }
+      function zoomToBay(svg, g, scale = 1.6) {
+        try {
+          const bbox = g.getBBox();
+          const svgW = viewSize, svgH = viewSize;
+          const targetW = Math.max(140, bbox.width * scale);
+          const targetH = Math.max(140, bbox.height * scale);
+          const cx = bbox.x + bbox.width/2;
+          const cy = bbox.y + bbox.height/2;
+          const x = Math.max(0, cx - targetW/2);
+          const y = Math.max(0, cy - targetH/2);
+          const to = [x, y, targetW, targetH];
+          const from = svg.getAttribute('viewBox').split(' ').map(Number);
+          animateViewBox(svg, from, to, 420);
+        } catch (err) { /* ignore */ }
+      }
+      function resetZoom(svg) {
+        const from = svg.getAttribute('viewBox').split(' ').map(Number);
+        const to = [0,0,viewSize,viewSize];
+        animateViewBox(svg, from, to, 300);
+      }
+
+      // Selection logic
+      const selectedSet = new Set();
+      let selectedStand = null;
+      let maxTickets = 4; // default, changeable via UI
+
+      function toggleSelectBay(bayId) {
+        const bay = baysData.find(b => String(b.id) === String(bayId));
+        if (!bay || bay.is_booked) return;
+
+        // if clicked the same stand again, deselect
+        if (selectedSet.has(bayId)) {
+          selectedSet.clear();
+          selectedStand = null;
+        } else {
+          selectedSet.clear(); // clear previous
+          selectedSet.add(bayId);
+          selectedStand = bay; // store chosen stand object
+        }
+        refreshUI();
+      }
+
+      function refreshUI() {
+        // update selection list & total
+        const listRoot = document.getElementById('selectedList');
+        listRoot.innerHTML = '';
+        let baseTotal = 0;
+        if (selectedSet.size === 0) {
+          listRoot.innerHTML = '<div style="color:var(--muted);margin-top:8px">No bays selected yet.</div>';
+        } else {
+          selectedSet.forEach(id => {
+            const bay = baysData.find(b => String(b.id) === String(id));
+            if (!bay) return;
+            baseTotal += (Number(bay.price || 0) * seatCount);
+            const div = document.createElement('div');
+            div.className = 'selected-item';
+            div.innerHTML = `<div>${bay.label} <small style="display:block;color:var(--muted);font-weight:600">${bay.standName} — Ring ${bay.ring}</small></div><div>${seatCount} x ₹${Number(bay.price).toLocaleString('en-IN')}</div>`;
+            listRoot.appendChild(div);
+          });
+        }
+
+        // calculate fees
+        const convFee = Math.round(baseTotal * 0.05);
+        const gstFee = Math.round((baseTotal + convFee) * 0.18);
+        const totalPayable = baseTotal + convFee + gstFee;
+
+        document.getElementById('basePrice').textContent = `₹${baseTotal.toLocaleString('en-IN')}`;
+        document.getElementById('convFee').textContent = `₹${convFee.toLocaleString('en-IN')}`;
+        document.getElementById('gstFee').textContent = `₹${gstFee.toLocaleString('en-IN')}`;
+        document.getElementById('totalAmount').textContent = `₹${totalPayable.toLocaleString('en-IN')}`;document.getElementById('continueBtn').disabled = selectedSet.size === 0;
+        document.getElementById('continueBtn').disabled = selectedSet.size === 0;
+        document.getElementById('ticketCountSummary').textContent = selectedStand ? `Tickets: ${seatCount}` : 'Tickets: 0';
+
+        // update svg fills
+        const svg = document.getElementById('stadiumSvg');
+        if (!svg) return;
+        const groups = svg.querySelectorAll('[data-bay-id]');
+        groups.forEach(g => {
+          const id = g.getAttribute('data-bay-id');
+          const path = g.querySelector('path');
+          if (!path) return;
+          const bay = baysData.find(b=>String(b.id) === String(id));
+          if (!bay) return;
+          if (bay.is_booked) {
+            path.setAttribute('fill', COLOR_SOLD);
+          } else if (selectedSet.has(String(id))) {
+            path.setAttribute('fill', COLOR_SELECTED);
+          } else {
+            path.setAttribute('fill', COLOR_AVAILABLE);
+          }
+        });
+      }
+
+      // --- open ticket count modal automatically ---
+      document.addEventListener('DOMContentLoaded', () => {
+        // open modal immediately after loading
+        showSeatCountModal(function(count){
+          seatCount = count;
+          setTicketLabel(count);
+        });
+      });
+
+      // initial render
+      buildSVG();
+      refreshUI();
+
+      // continue button -> post booking then redirect to payment page
+      document.getElementById('continueBtn').addEventListener('click', () => {
+        if (selectedSet.size === 0) return;
+        const bays = Array.from(selectedSet);
+        const total = document.getElementById('totalAmount').textContent.replace(/[^\d]/g,'') || 0;
+        // --- Store booking details for payment page ---
+        const selectedBay = baysData.find(b => String(b.id) === String(bays[0]));
+        if (selectedBay) {
+          sessionStorage.setItem('selectedBay', JSON.stringify(selectedBay));
+          sessionStorage.setItem('ticketCount', seatCount);
+          sessionStorage.setItem('totalPrice', total);
+        }
+        const payload = {bays: bays, total: Number(total), payment_method: 'pending'};
+        fetch("{% url 'sports:confirm_booking' %}", {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+          body: JSON.stringify(payload),
+          credentials: 'same-origin'
+        }).then(r => r.json()).then(data => {
+          if (data.status === 'success') {
+            // uses 'sports:payment' url without slug argument — change to include slug if your urls accept it
+            window.location.href = "/sports/{{ match.slug }}/payment/";
+          } else {
+            alert(data.message || 'Booking failed');
+          }
+        }).catch(err => {
+          console.error(err);
+          alert('Booking failed — check console');
+        });
+      });
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+  <script> if (window.AOS) AOS.init({duration:700,once:true}); </script>
+</body>
+</html>

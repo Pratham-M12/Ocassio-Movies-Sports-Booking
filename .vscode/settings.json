@@ -1,0 +1,7 @@
+{
+    "C_Cpp.errorSquiggles": "disabled",
+    "html.validate.scripts": false,
+    "html.validate.styles": false,
+    "html.validate.fragments": false,
+    "editor.underline": false
+}

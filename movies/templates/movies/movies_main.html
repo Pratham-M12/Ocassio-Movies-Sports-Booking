@@ -1,0 +1,491 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Occasio - Movie Booking</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #000;
+      --bg-glass: rgba(0,0,0,0.8);
+      --accent: #4285f4;
+      --accent-green: #34a853;
+      --accent-gradient: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+      --text: #fff;
+      --text-muted: #b0b0b8;
+      --radius: 18px;
+    }
+    body {background: var(--bg-dark); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; min-height: 100vh; overflow-x: hidden;}
+    .navbar {position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 2.5rem; background: var(--bg-glass); backdrop-filter: blur(10px); border-bottom: 1px solid #23232a; transition: background 0.3s;}
+    .navbar .logo {font-size: 2rem; font-weight: 800; letter-spacing: 1px; color: var(--text); text-shadow: 0 4px 24px #4285f4aa;}
+    .navbar .location-select {background: none; border: none; color: var(--accent-green); font-weight: 600; font-size: 1rem; margin-right: 1.5rem; cursor: pointer; transition: color 0.2s;}
+    .navbar .location-select:hover {color: var(--accent);}
+    .navbar .search-bar {flex: 1; margin: 0 2rem; max-width: 480px; display: flex; align-items: center; background: rgba(255,255,255,0.05); border-radius: var(--radius); padding: 0.5rem 1rem; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 2px 12px #4285f422;}
+    .navbar .search-bar input {background: transparent; border: none; color: var(--text); font-size: 1rem; width: 100%; outline: none; padding: 0.5rem 0;}
+    .navbar .nav-links {display: flex; align-items: center; gap: 1.5rem;}
+    .navbar .nav-links a {color: var(--text); font-weight: 500; text-decoration: none; transition: color 0.2s, opacity 0.2s; opacity: 0.85;}
+    .navbar .nav-links a:hover {color: var(--accent); opacity: 1;}
+    .navbar .sign-btn {background: var(--accent-gradient); color: #fff; font-weight: 700; border: none; border-radius: var(--radius); padding: 0.6rem 1.5rem; margin-left: 1.5rem; cursor: pointer; font-size: 1rem; box-shadow: 0 2px 16px #4285f433; transition: transform 0.2s, box-shadow 0.2s;}
+    .navbar .sign-btn:hover {transform: translateY(-2px) scale(1.04); box-shadow: 0 8px 32px #4285f488; background: linear-gradient(135deg, #34a853 0%, #4285f4 100%);}
+    
+    .user-area {display: flex; align-items: center; gap: 0.75rem; cursor: pointer; padding: 0.25rem 0.5rem; border-radius: 12px; transition: background 0.18s;}
+    .user-area:hover { background: rgba(255,255,255,0.02); }
+    .user-avatar {width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg,#2b2b2f,#111); display: inline-flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; box-shadow: 0 4px 14px #0008; border: 1px solid rgba(255,255,255,0.06);}
+    .user-greet { font-size: 0.98rem; color: var(--text); font-weight:600; }
+    .user-panel-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 400; opacity:0; visibility:hidden; transition:opacity .18s; }
+    .user-panel { position: fixed; top: 0; right: 0; width: 360px; height: 100vh; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); backdrop-filter: blur(8px); box-shadow: -12px 0 40px #000a; z-index: 401; transform: translateX(110%); transition: transform .25s ease; border-left:1px solid rgba(255,255,255,0.04); padding: 1.2rem 1.2rem 3rem; display:flex; flex-direction:column; gap: 1rem; }
+    .user-panel.open { transform: translateX(0); }
+    .user-panel-backdrop.open { opacity:1; visibility:visible; }
+    .user-panel .panel-header { display:flex; gap: 1rem; align-items:center; }
+    .user-panel .panel-header .avatar-big { width:68px; height:68px; border-radius:50%; background:#222; display:inline-flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:1.2rem; border:1px solid rgba(255,255,255,0.04);}
+    .user-panel h3 { margin:0; font-size:1.2rem; }
+    .user-panel .menu { margin-top: 8px; display:flex; flex-direction:column; gap: 8px; }
+    .user-panel .menu a, .user-panel .menu button { text-align:left; background:none; border:none; color:var(--text); padding: 10px 8px; border-radius:8px; cursor:pointer; font-weight:600;}
+    .user-panel .menu a:hover, .user-panel .menu button:hover { background: rgba(255,255,255,0.02); color: var(--accent); }
+    .user-panel .signout { margin-top:18px; border-radius:12px; padding:12px; background: var(--accent-gradient); color:#fff; font-weight:700; box-shadow: 0 8px 24px rgba(66,133,244,0.12); border:none; cursor:pointer;}
+    
+    .hero-banner {margin-top: 2.9rem; position: relative; width: 100vw; min-height: 70vh; height: 70vh; max-height: 900px; display: flex; align-items: flex-end; justify-content: center; overflow: hidden; background: #111;}
+    .slideshow {position: relative; width: 100vw; max-width: 100vw; height: 100%; min-height: 70vh; border-radius: 0; overflow: hidden; box-shadow: 0 8px 32px #000a; display: flex; align-items: flex-end; justify-content: flex-start; background: #111;}
+    .slide {width: 100%; height: 100%; background-position: center center; background-size: cover; background-repeat: no-repeat; background-color: #111; position: absolute; left: 0; top: 0; opacity: 0; z-index: 1; transition: opacity 1s cubic-bezier(.4,0,.2,1);}
+    .slide-content {position: absolute; left: 3rem; bottom: 3.5rem; z-index: 3; color: #fff; text-shadow: 0 2px 16px #000c; max-width: 420px; background: rgba(0,0,0,0.55); padding: 2.2rem 2.5rem 2.2rem 2.5rem; border-radius: 18px; box-shadow: 0 8px 32px #000a; animation: fadeInUp 1s cubic-bezier(.4,0,.2,1); display: flex; flex-direction: column; gap: 1.1rem;}
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+    .slide-content h1 {font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem; color: #fff; text-shadow: 0 4px 24px #4285f4aa;}
+    .slide-content p {font-size: 1.1rem; margin-bottom: 1.2rem; opacity: 0.85;}
+    .slide-content .cta-btn {background: var(--accent-gradient); color: #fff; font-weight: 700; border: none; border-radius: var(--radius); padding: 0.7rem 2rem; font-size: 1.1rem; cursor: pointer; box-shadow: 0 2px 16px #4285f433; transition: transform 0.2s, box-shadow 0.2s, background 0.2s; }
+    .slide-content .cta-btn:hover {background: linear-gradient(135deg, #34a853 0%, #4285f4 100%); transform: translateY(-2px) scale(1.04); box-shadow: 0 8px 32px #4285f488;}
+    /* Reflection effect */
+    .reflection {width: 100%; height: 80px; margin-top: -10px; background: linear-gradient(180deg, #fff2 0%, #000c 80%); opacity: 0.25; filter: blur(6px) flipv; pointer-events: none; position: absolute; left: 0; bottom: -80px; z-index: 1;}
+    /* Overlay for slideshow */
+    .slideshow::before {content: ''; position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: linear-gradient(120deg,rgba(0,0,0,0.55) 60%,rgba(0,0,0,0.15) 100%); z-index: 2; pointer-events: none;}
+    @media (max-width: 900px) {
+    .hero-banner { min-height: 180px; height: 40vh; }
+    .slideshow { height: 100%; min-height: 180px; max-width: 100vw; }
+    .slide-content {left: 0.7rem; bottom: 0.7rem; padding: 1.1rem 1.2rem; max-width: 80vw; font-size: 1.1rem;}
+    .slide-content h1 { font-size: 1.3rem; }
+    .slide-content p { font-size: 0.98rem; }
+    .slide-content .cta-btn { font-size: 1rem; padding: 0.5rem 1.2rem; }
+    }
+    @media (max-width: 600px) {
+    .hero-banner { min-height: 90px; height: 28vh; }
+    .slideshow { height: 100%; min-height: 90px; max-width: 100vw; }
+    .slide-content {left: 0.2rem; bottom: 0.2rem; padding: 0.5rem 0.6rem; max-width: 99vw; font-size: 0.95rem; border-radius: 10px; gap: 0.5rem;}
+    .slide-content h1 { font-size: 1.05rem; }
+    .slide-content p { font-size: 0.85rem; }
+    .slide-content .cta-btn { font-size: 0.95rem; padding: 0.4rem 0.8rem; }
+    }
+    /* Layout */
+    .main-content-wrap {display: flex; max-width: 1300px; margin: 2.5rem auto 0 auto; gap: 2.5rem; padding: 0 2rem;}
+    /* Filters */
+    .filters {min-width: 220px; background: rgba(255,255,255,0.05); border-radius: var(--radius); padding: 2rem 1.5rem; box-shadow: 0 2px 16px #4285f422; margin-top: 0.5rem; height: fit-content; border: 1px solid rgba(255,255,255,0.1);}
+    .filters h3 {font-size: 1.1rem; color: var(--accent); margin-bottom: 1rem; font-weight: 700;}
+    .filter-group {margin-bottom: 1.5rem;}
+    .filter-group label {display: inline-block; background: #23232a; color: var(--text-muted); border-radius: 12px; padding: 0.3rem 1rem; margin: 0.2rem 0.3rem 0.2rem 0; font-size: 0.98rem; cursor: pointer; transition: background 0.2s, color 0.2s;}
+    .filter-group label.active {background: var(--accent-gradient); color: #fff; box-shadow: 0 2px 12px #4285f433;}
+    .filter-group .clear-link {color: var(--accent-green); font-size: 0.95rem; margin-left: 0.5rem; cursor: pointer; text-decoration: underline; transition: color 0.2s;}
+    .filter-group .clear-link:hover {color: var(--accent);}
+    /* Movies Section */
+    .movies-section {flex: 1; min-width: 0;}
+    .movies-header {display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.2rem;}
+    .movies-header h2 {font-size: 2rem; font-weight: 700; color: #fff; text-shadow: 0 2px 12px #4285f4aa;}
+    .movies-tabs {display: flex; gap: 1.2rem;}
+    .movies-tabs button {background: none; border: none; color: var(--text-muted); font-size: 1.1rem; font-weight: 600; cursor: pointer; padding: 0.4rem 1.2rem; border-radius: 12px; transition: background 0.2s, color 0.2s;}
+    .movies-tabs button.active {background: var(--accent-gradient); color: #fff; box-shadow: 0 2px 12px #4285f433;}
+    .movies-tabs button:hover {color: var(--accent);}
+    /* Movie Grid */
+    .movie-grid {display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 2rem;}
+    .movie-card {background: rgba(255,255,255,0.05); border-radius: var(--radius); overflow: hidden; box-shadow: 0 2px 16px #4285f422; position: relative; display: flex; flex-direction: column; transition: transform 0.18s, box-shadow 0.18s; border: 1px solid rgba(255,255,255,0.1);}
+    .movie-card:hover {transform: translateY(-6px) scale(1.03); box-shadow: 0 8px 32px #4285f488;}
+    .movie-poster {width: 100%; aspect-ratio: 2/3; object-fit: cover; display: block;}
+    .movie-info {padding: 1.1rem 1rem 1rem 1rem; flex: 1; display: flex; flex-direction: column; gap: 0.4rem;}
+    .movie-title {font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 0.2rem; text-shadow: 0 2px 8px #4285f4aa;}
+    .movie-meta {font-size: 0.97rem; color: var(--text-muted); margin-bottom: 0.3rem;}
+    .movie-rating {font-size: 0.95rem; color: var(--accent-green); margin-bottom: 0.5rem;}
+    .movie-actions {display: flex; gap: 0.7rem; align-items: center; margin-top: 0.5rem;}
+    .book-btn {background: var(--accent-gradient); color: #fff; border: none; border-radius: 10px; padding: 0.5rem 1.2rem; font-weight: 700; cursor: pointer; font-size: 1rem; transition: transform 0.2s, box-shadow 0.2s, background 0.2s; box-shadow: 0 2px 12px #4285f433;}
+    .book-btn:hover { background: linear-gradient(135deg, #34a853 0%, #4285f4 100%); transform: translateY(-2px) scale(1.04); box-shadow: 0 8px 32px #4285f488;}
+    .trailer-link {color: var(--accent); font-size: 0.98rem; text-decoration: underline; cursor: pointer; background: none; border: none; padding: 0; transition: color 0.2s;}
+    .trailer-link:hover {color: var(--accent-green);}
+    .plus-badge {position: absolute; top: 1rem; right: 1rem; background: var(--accent-gradient); color: #fff; font-size: 0.85rem; font-weight: 700; padding: 0.25rem 0.8rem; border-radius: 10px; box-shadow: 0 2px 8px #4285f433; letter-spacing: 0.5px;}
+    /* Membership Section */
+    .membership-section {margin: 3.5rem auto 2rem auto; max-width: 1200px; display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap;}
+    .membership-card {background: rgba(255,255,255,0.05); border-radius: var(--radius); box-shadow: 0 2px 16px #4285f422; padding: 2.2rem 2rem 2rem 2rem; min-width: 320px; max-width: 380px; flex: 1; display: flex; flex-direction: column; align-items: flex-start; border: 2px solid var(--accent); position: relative; transition: transform 0.2s, box-shadow 0.2s;}
+    .membership-card.elite {border-color: var(--accent-green);}
+    .membership-card:hover {transform: translateY(-5px) scale(1.03); box-shadow: 0 8px 32px #4285f488;}
+    .membership-card h3 {font-size: 1.4rem; font-weight: 800; margin-bottom: 0.7rem; color: var(--accent); text-shadow: 0 2px 12px #4285f4aa;}
+    .membership-card.elite h3 {color: var(--accent-green); text-shadow: 0 2px 12px #34a853aa;}
+    .membership-features {margin-bottom: 1.2rem; color: var(--text-muted); font-size: 1.05rem; line-height: 1.7;}
+    .membership-price {font-size: 1.3rem; font-weight: 700;  color: #fff; margin-bottom: 1.2rem;}
+    .membership-btn {background: var(--accent-gradient); color: #fff; font-weight: 700; border: none; border-radius: 12px; padding: 0.7rem 2rem; font-size: 1.1rem; cursor: pointer; box-shadow: 0 2px 16px #4285f433; transition: transform 0.2s, box-shadow 0.2s, background 0.2s;}
+    .membership-card.elite .membership-btn {background: linear-gradient(135deg, #34a853 0%, #4285f4 100%);}
+    .membership-btn:hover {background: linear-gradient(135deg, #4285f4 0%, #34a853 100%); transform: translateY(-2px) scale(1.04); box-shadow: 0 8px 32px #4285f488;}
+    /* Footer */
+    .footer {background: #000; padding: 3rem 2rem; text-align: center; border-top: 1px solid #333;}
+    .footer-content {max-width: 1200px; margin: 0 auto;}
+    .footer-links {display: flex; justify-content: center; gap: 2rem; margin-bottom: 2rem; flex-wrap: wrap;}
+    .footer-links a {color: white; text-decoration: none; opacity: 0.7; transition: opacity 0.3s;}
+    .footer-links a:hover {opacity: 1;}
+    .footer p {opacity: 0.5; font-size: 0.9rem;}
+    @media (max-width: 1100px) {
+      .main-content-wrap { flex-direction: column; gap: 1.5rem; }
+      .filters { width: 100%; margin-bottom: 2rem; }
+    }
+    @media (max-width: 700px) {
+      .navbar { flex-direction: column; gap: 1rem; padding: 1rem; }
+      .navbar .search-bar { margin: 1rem 0; }
+      .main-content-wrap { padding: 0 0.5rem; }
+      .membership-section { flex-direction: column; gap: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="logo">Occasio</div>
+    <div class="search-bar">
+      <input type="text" placeholder="Search for Movies, Events or Sports"/>
+    </div>
+    <button class="location-select">Navi Mumbai ▼</button>
+    <div class="nav-links">
+      <a href="{% url 'movies:home' %}">Movies</a>
+      <a href="#">Events</a>
+      <a href="{% url 'sports:home' %}">Sports</a>
+      <a href="{% url 'offers:home' %}">Offers</a>
+      <a href="{% url 'giftcards:home' %}">Gift Cards</a>
+      <div id="userAreaPlaceholder">
+        {% if user.is_authenticated %}
+          <div class="user-area" onclick="toggleUserPanel()">
+            <div class="user-avatar">{{ user.first_name|default:user.username|slice:":1"|upper }}</div>
+            <div class="user-greet">Hi, {{ user.first_name|default:user.username }}</div>
+          </div>
+        {% else %}
+          <button class="sign-btn" onclick="window.location.href='{% url 'accounts:login' %}'">Sign In / Sign Up</button>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+  <!-- Hero Banner Slideshow -->
+  <section class="hero-banner">
+    <div class="slideshow" id="heroSlideshow">
+      <div class="slide" style="background-image: url('{% static 'movies/banners/50shades.jpg' %}');"></div>
+      <div class="slide" style="background-image: url('{% static 'movies/banners/avatar.jpg' %}');"></div>
+      <div class="slide" style="background-image: url('{% static 'movies/banners/conjuring.jpg' %}');"></div>
+      <div class="slide" style="background-image: url('{% static 'movies/banners/JollyLLB3.jpg' %}');"></div>
+      <div class="slide" style="background-image: url('{% static 'movies/banners/kantara-2.jpg' %}');"></div>
+      <div class="slide" style="background-image: url('{% static 'movies/banners/shinchan.jpg' %}');"></div>
+      <div class="slide" style="background-image: url('{% static 'movies/banners/AsphaltAngels.jpg' %}');"></div>
+      <div class="slide-content" id="slideContent">
+        <h1 id="slideTitle">Now Showing</h1>
+        <p id="slideDesc">Book your tickets for the latest blockbusters and enjoy an unforgettable movie experience.</p>
+        <button class="cta-btn">Book Tickets Now</button>
+      </div>
+      <div class="reflection"></div>
+    </div>
+    <script>
+      // Professional slideshow logic for hero banner
+      const slides = document.querySelectorAll('#heroSlideshow .slide');
+      const slideContent = document.getElementById('slideContent');
+      const slideTitles = [
+        '50 Shades of Grey',
+        'Avatar Returns',
+        'The Conjuring',
+        'Jolly LLB 3 ',
+        'Kantara: A Legend Chapter-1',
+        'Shinchan: The Spicy Kasukabe Dancers in India',
+        'Asphalt Angels: Rise of the Street Saints'
+      ];
+      const slideDescs = [
+        'Step into a world of desire and secrets—where passion dares to break every rule.',
+        'Experience the world of Pandora like never before. Book your tickets now!',
+        'Get ready for chills and thrills. The horror event of the year awaits!',
+        'Don\'t miss the most awaited comedy drama of the year. Book your seats!',
+        'Witness the legend. Kantara returns with more action and drama!',
+        'Fun for the whole family! Shinchan brings laughter to the big screen.'
+      ];
+      let currentSlide = 0;
+      function showSlide(idx) {
+        slides.forEach((slide, i) => {
+          slide.style.opacity = (i === idx) ? '1' : '0';
+          slide.style.zIndex = (i === idx) ? '2' : '1';
+        });
+        // Animate content
+        slideContent.style.animation = 'none';
+        void slideContent.offsetWidth; // trigger reflow
+        slideContent.style.animation = null;
+        document.getElementById('slideTitle').textContent = slideTitles[idx];
+        document.getElementById('slideDesc').textContent = slideDescs[idx];
+      }
+      showSlide(currentSlide);
+      setInterval(() => {
+        currentSlide = (currentSlide + 1) % slides.length;
+        showSlide(currentSlide);
+      }, 3500);
+    </script>
+  </section>
+
+  <!-- Main Content Layout -->
+  <div class="main-content-wrap">
+    <!-- Filters Sidebar -->
+    <aside class="filters">
+      <h3 style="display: flex; justify-content: space-between; align-items: center;">Languages <span class="clear-link">Clear</span></h3>
+      <div class="filter-group">
+        <label class="active">Hindi</label>
+        <label>English</label>
+        <label>Marathi</label>
+        <label>Telugu</label>
+        <label>Tamil</label>
+      </div>
+      <h3 style="display: flex; justify-content: space-between; align-items: center;">Genres <span class="clear-link">Clear</span></h3>
+      <div class="filter-group">
+        <label>Action</label>
+        <label class="active">Comedy</label>
+        <label>Thriller</label>
+        <label>Drama</label>
+      </div>
+      <h3 style="display: flex; justify-content: space-between; align-items: center;">Format <span class="clear-link">Clear</span></h3>
+      <div class="filter-group">
+        <label class="active">2D</label>
+        <label>3D</label>
+        <label>IMAX</label>
+        <label>4DX</label>
+      </div>
+    </aside>
+
+    <!-- Movies Section -->
+    <section class="movies-section">
+      <div class="movies-header">
+        <h2>Movies in Navi Mumbai</h2>
+        <div class="movies-tabs">
+          <button class="active">Now Showing</button>
+          <button>Coming Soon</button>
+        </div>
+      </div>
+      <div class="movie-grid">
+        <!-- Vadapav Movie -->
+        <div class="movie-card">
+          <img class="movie-poster" src="{% static 'movies/posters/vadapav.png' %}" alt="Vadapav Movie Poster"/>
+          <div class="movie-info">
+            <div class="movie-title">Vadapav</div>
+            <div class="movie-meta">Marathi, Drama, Comedy</div>
+            <div class="movie-rating">⭐ 8.5 (1.2k reviews)</div>
+            <div class="movie-actions">
+              <button class="book-btn" onclick="window.location.href='/movies/vadapav/showtimes/'">Book Now</button>
+              <button class="trailer-link">Trailer</button>
+            </div>
+          </div>
+        </div>
+        <div class="movie-card">
+          <img class="movie-poster" src="{% static 'movies/posters/kantara2.jpg' %}" alt="Kantara 2 Poster"/>
+          <div class="movie-info">
+            <div class="movie-title">Kantara: A Legend Chapter-1</div>
+            <div class="movie-meta">Kannada, Action, Thriller</div>
+            <div class="movie-rating">⭐ 9.2 (12.5k reviews)</div>
+            <div class="movie-actions">
+              <button class="book-btn" onclick="window.location.href='/movies/kantara2/showtimes/'">Book Now</button>
+              <button class="trailer-link">Trailer</button>
+            </div>
+            <div class="plus-badge">Occasio Plus</div>
+          </div>
+        </div>
+        <!-- Asphalt Angels: Rise of the Street Saints -->
+        <div class="movie-card">
+          <img class="movie-poster" src="{% static 'movies/posters/AsphaltAngels.jpg' %}" alt="Asphalt Angels: Rise of the Street Saints "/>
+          <div class="movie-info">
+            <div class="movie-title">Asphalt Angels: Rise of the Street Saints</div>
+            <div class="movie-meta">English, Action, Drama</div>
+            <div class="movie-rating">⭐ 8.7 (2.1k reviews)</div>
+            <div class="movie-actions">
+              <button class="book-btn" onclick="window.location.href='/movies/asphaltangels/showtimes/'">Book Now</button>
+              <button class="trailer-link">Trailer</button>
+            </div>
+          </div>
+        </div>
+        <!-- Shin Chan: The Spicy Kasukabe Dancers in India -->
+        <div class="movie-card">
+          <img class="movie-poster" src="{% static 'movies/posters/shinchan.jpg' %}" alt="Shin Chan: The Spicy Kasukabe Dancers in India "/>
+          <div class="movie-info">
+            <div class="movie-title">ShinChan: The Spicy Kasukabe Dancers in India</div>
+            <div class="movie-meta">Hindi, Animation, Comedy</div>
+            <div class="movie-rating">⭐ 9.0 (3.8k reviews)</div>
+            <div class="movie-actions">
+              <button class="book-btn" onclick="window.location.href='/movies/shinchankasukabedancers/showtimes/'">Book Now</button>
+              <button class="trailer-link">Trailer</button>
+            </div>
+          </div>
+        </div>
+        <div class="movie-card">
+          <img class="movie-poster" src="{% static 'movies/posters/jolly.jpg' %}" alt="Jolly LLB 3 Poster"/>
+          <div class="movie-info">
+            <div class="movie-title">Jolly LLB 3</div>
+            <div class="movie-meta">Hindi, Comedy, Drama</div>
+            <div class="movie-rating">⭐ 8.7 (8.1k reviews)</div>
+            <div class="movie-actions">
+              <button class="book-btn" onclick="window.location.href='/movies/jolly/showtimes/'">Book Now</button>
+              <button class="trailer-link">Trailer</button>
+            </div>
+            <div class="plus-badge" style="background:linear-gradient(90deg,#34a853,#4285f4);">Elite</div>
+          </div>
+        </div>
+        <div class="movie-card">
+          <img class="movie-poster" src="{% static 'movies/posters/Avatar.jpg' %}" alt="Avatar Poster"/>
+          <div class="movie-info">
+            <div class="movie-title">Avatar: The Way of Water</div>
+            <div class="movie-meta">English, Sci-Fi, Adventure</div>
+            <div class="movie-rating">⭐ 9.0 (20k reviews)</div>
+            <div class="movie-actions">
+              <button class="book-btn" onclick="window.location.href='/movies/avatar/showtimes/'">Book Now</button>
+              <button class="trailer-link">Trailer</button>
+            </div>
+          </div>
+        </div>
+        <div class="movie-card">
+          <img class="movie-poster" src="{% static 'movies/posters/conjuring.jpg' %}" alt="The Conjuring Poster"/>
+          <div class="movie-info">
+            <div class="movie-title">The Conjuring: Last Rites</div>
+            <div class="movie-meta">English, Horror, Thriller</div>
+            <div class="movie-rating">⭐ 8.5 (15k reviews)</div>
+            <div class="movie-actions">
+              <button class="book-btn" onclick="window.location.href='/movies/conjuring/showtimes/'">Book Now</button>
+              <button class="trailer-link">Trailer</button>
+            </div>
+          </div>
+        </div>
+        <div class="movie-card">
+          <img class="movie-poster" src="{% static 'movies/posters/Dashavatar.jpg' %}" alt="Dashavatar Poster"/>
+          <div class="movie-info">
+            <div class="movie-title">Dashavatar</div>
+            <div class="movie-meta">Marathi, Mythology, Drama</div>
+            <div class="movie-rating">⭐ 8.2 (7k reviews)</div>
+            <div class="movie-actions">
+              <button class="book-btn" onclick="window.location.href='/movies/dashavatar/showtimes/'">Book Now</button>
+              <button class="trailer-link">Trailer</button>
+            </div>
+            <div class="plus-badge">Occasio Plus</div>
+          </div>
+        </div>
+        <div class="movie-card">
+          <div class="movie-card-link" onclick="window.location.href='/movies/sunny_sanskari/showtimes/'" style="cursor:pointer;display:flex;flex-direction:column;height:100%;">
+            <img class="movie-poster" src="{% static 'movies/posters/sunny.jpg' %}" alt="Sunny Poster" style="cursor:pointer;"/>
+            <div class="movie-info">
+              <div class="movie-title">Sunny Sanskari Ki Tulsi Kumari</div>
+              <div class="movie-meta">Hindi, Comedy, Romantic</div>
+              <div class="movie-rating">⭐ 7.9 (2k reviews)</div>
+              <div class="movie-actions">
+                <button class="book-btn" onclick="event.stopPropagation();window.location.href='/movies/sunny_sanskari/showtimes/'">Book Now</button>
+                <button class="trailer-link" onclick="event.stopPropagation();">Trailer</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Membership Section -->
+  <section class="membership-section">
+    <div class="membership-card">
+      <h3>Occasio Plus</h3>
+      <div class="membership-features">
+        • Early access to bookings<br>
+        • Exclusive discounts<br>
+        • Free snacks on select shows
+      </div>
+      <div class="membership-price">₹199/year</div>
+      <button class="membership-btn">Subscribe Now</button>
+    </div>
+    <div class="membership-card elite">
+      <h3>Occasio Elite</h3>
+      <div class="membership-features">
+        • All Plus benefits<br>
+        • Premium lounge access<br>
+        • Priority support<br>
+        • Free upgrades
+      </div>
+      <div class="membership-price">₹499/year</div>
+      <button class="membership-btn">Go Elite</button>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-links">
+        <a href="#">About Us</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+        <a href="#">FAQ</a>
+        <a href="#">Contact</a>
+        <a href="#">Careers</a>
+        <a href="#">Press</a>
+      </div>
+      <p>Available in 50+ cities across India. Experience the future of movie booking.</p>
+      <p style="margin-top: 1rem; font-size: 0.8rem; opacity: 0.5;">
+        © 2024 Ocassio. All rights reserved. Prices and availability subject to change.
+      </p>
+      <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.75; display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap;">
+        Designed by <strong>Krish Koli</strong> •
+        <a href="https://instagram.com/krishkoli021" target="_blank" style="color: #4285f4; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+          <img src="https://img.icons8.com/ios-filled/50/ffffff/instagram-new.png" alt="Instagram" style="width: 16px; height: 16px;">
+          @krishkoli021
+        </a>
+      </p>
+      <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.75; display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap;">
+        Developed by <strong>Pratham Mendon</strong> •
+        <a href="https://instagram.com/prathammendon12" target="_blank" style="color: #4285f4; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+          <img src="https://img.icons8.com/ios-filled/50/ffffff/instagram-new.png" alt="Instagram" style="width: 16px; height: 16px;">
+          @prathammendon12
+        </a>
+      </p>
+    </div>
+</footer>
+
+<!-- User Panel Backdrop + Panel -->
+<div id="userPanelBackdrop" class="user-panel-backdrop" onclick="closeUserPanel()"></div>
+<aside id="userPanel" class="user-panel" aria-hidden="true">
+  <div class="panel-header">
+    <div class="avatar-big">{{ user.first_name|default:user.username|slice:":1"|upper }}</div>
+    <div>
+      <h3>{{ user.first_name|default:user.username }}</h3>
+      <div style="opacity:.8;font-size:.95rem;color:var(--text-muted)">{{ user.email }}</div>
+    </div>
+  </div>
+  <div class="menu">
+    <button onclick="openProfile()">Edit Profile</button>
+    <button onclick="openOrders()">Your Orders</button>
+    <button onclick="openStream()">Stream Library</button>
+    <button onclick="openHelp()">Help & Support</button>
+    <button onclick="openSettings()">Accounts & Settings</button>
+    <button onclick="openRewards()">Rewards</button>
+  </div>
+  <button class="signout" onclick="window.location.href='{% url 'accounts:logout' %}'">Sign out</button>
+</aside>
+<script>
+  function gotoLogin(){ window.location.href='{% url "accounts:login" %}'; }
+  // Sidebar controls
+  function toggleUserPanel(){
+    const b = document.getElementById('userPanelBackdrop');
+    const p = document.getElementById('userPanel');
+    const open = p.classList.toggle('open');
+    b.classList.toggle('open', open);
+    p.setAttribute('aria-hidden', !open);
+  }
+  function closeUserPanel(){
+    const b = document.getElementById('userPanelBackdrop');
+    const p = document.getElementById('userPanel');
+    p.classList.remove('open'); b.classList.remove('open'); p.setAttribute('aria-hidden','true');
+  }
+  // function signOut(){ clearSession(); closeUserPanel(); }
+  // Navigation helpers for panel
+  function openProfile(){ window.location.href='/accounts/profile/'; }
+  function openOrders(){ alert('Your Orders - not implemented yet'); }
+  function openStream(){ alert('Stream Library - not implemented yet'); }
+  function openHelp(){ alert('Help & Support - not implemented yet'); }
+  function openSettings(){ alert('Accounts & Settings - not implemented yet'); }
+  function openRewards(){ alert('Rewards - not implemented yet'); }
+
+  // Initialize UI on load
+  document.addEventListener('DOMContentLoaded', updateUserUI);
+</script>
+</body>
+</html>

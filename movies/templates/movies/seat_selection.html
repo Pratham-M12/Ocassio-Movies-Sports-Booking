@@ -1,0 +1,581 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Book Seats | Ocassio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #000;
+      --bg-glass: rgba(0,0,0,0.8);
+      --accent: #4285f4;
+      --accent-green: #34a853;
+      --accent-gradient: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+      --seat-available: #fff;
+      --seat-booked: #e74c3c;
+      --seat-selected: #4285f4;
+      --seat-unavailable: #23232a;
+      --text: #fff;
+      --text-muted: #b0b0b8;
+      --radius: 18px;
+    }
+    body {background: var(--bg-dark); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; min-height: 100vh; display: flex; flex-direction: column;}
+    .navbar {position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 2.5rem; background: var(--bg-glass); backdrop-filter: blur(10px); border-bottom: 1px solid #23232a; transition: background 0.3s;}
+    .logo {font-size: 2rem; font-weight: 800; color: var(--text); text-shadow: 0 4px 24px #4285f4aa;}
+    .nav-links {display: flex; align-items: center; gap: 1.5rem;}
+    .nav-links a {color: var(--text); font-weight: 500; text-decoration: none;opacity: 0.85; transition: color 0.2s, opacity 0.2s;}
+    .nav-links a:hover,
+    .nav-links a.active {color: var(--accent); opacity: 1;}
+    .sign-btn {background: var(--accent-gradient); color: #fff; font-weight: 700; border: none; border-radius: var(--radius); padding: 0.6rem 1.5rem; margin-left: 1.5rem; cursor: pointer; font-size: 1rem; box-shadow: 0 2px 16px #4285f433; transition: transform 0.2s, box-shadow 0.2s;}
+    .sign-btn:hover {transform: translateY(-2px) scale(1.04); box-shadow: 0 8px 32px #4285f488; background: linear-gradient(135deg, #34a853 0%, #4285f4 100%);}
+    .ticket-btn {position: fixed; right: 28px; top: 120px; background: transparent; color: var(--accent); border: 2px solid var(--accent); padding: 8px 14px; border-radius: 18px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: none; z-index: 150; font-size: 0.98rem;}
+    .ticket-btn svg { width: 16px; height: 16px; display: inline-block; vertical-align: middle; }
+    .progress-bar {display: flex; align-items: center; gap: 1.2rem; margin: 2.5rem auto 1.2rem auto; justify-content: center; font-size: 1.1rem; font-weight: 600; color: var(--text-muted);}
+    .progress-step {display: flex; align-items: center; gap: 0.5rem;}
+    .progress-step.active {color: var(--accent);}
+    .progress-dot {width: 12px; height: 12px; border-radius: 50%; background: var(--accent); margin-right: 0.5rem; opacity: 0.7;}
+    .progress-step:not(:last-child)::after {content: ''; display: inline-block; width: 40px; height: 2px; background: #333; margin-left: 0.7rem; vertical-align: middle;}
+    .main-content-wrap {max-width: 1100px; margin: 7.5rem auto 0 auto; padding: 0 2rem 2rem 2rem; flex: 1 0 auto;}
+    .top-section {display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2.2rem;}
+    .movie-poster {width: 70px; height: 100px; object-fit: cover; border-radius: 10px; box-shadow: 0 2px 12px #e74c3c33; background: #23232a;}
+    .movie-details {display: flex; flex-direction: column; gap: 0.3rem;}
+    .movie-title {font-size: 1.3rem; font-weight: 800; color: #fff;}
+    .movie-meta {font-size: 1rem; color: var(--text-muted);}
+    .back-btn {background: none; border: none; color: var(--accent-red); font-size: 1.2rem; font-weight: 700; cursor: pointer; margin-right: 1.5rem; transition: color 0.2s;}
+    .back-btn:hover {color:#fff;}
+    .screen-label {text-align:center; font-size: 1.1rem; font-weight: 700; color: var(--accent); margin-bottom: 0.5rem; letter-spacing: 1.5px;}
+    .screen-bar {width: 80%; margin:0 auto 2.2rem auto; height: 18px; border-radius: 0 0 40px 40px/0 0 18px 18px; background: var(--accent-gradient); opacity: 0.18;}
+    .seat-map {display: flex; flex-direction: column; align-items: center; gap: 0.7rem; margin-bottom: 2.5rem;}
+    .seat-row {display: flex; gap: 1.2rem; align-items: center; margin-bottom: 0.2rem;}
+    .seat-row-label {width: 24px; text-align: right; font-size: 1rem; color: #b0b0b8; font-weight: 600; margin-right: 0.5rem;}
+    .seat {width: 34px; height: 34px; background: var(--seat-available); border: 2px solid #333; color: #222; border-radius: 8px; font-weight: 700; font-size: 0.98rem; display: flex; align-items: center;justify-content: center; cursor: pointer; margin: 0 0.1rem; transition: box-shadow 0.18s, transform 0.18s, background 0.18s, color 0.18s, border 0.18s; user-select: none; outline: none; position: relative; box-shadow: 0 2px 8px #23232a22; z-index: 60; pointer-events: auto;}
+    .seat.available:hover {box-shadow: 0 4px 16px #ffd60088, 0 2px 8px #23232a22; transform: translateY(-3px) scale(1.08); z-index: 2; outline: 3px solid rgba(66,133,244,0.28);}
+    .seat.selected {background: var(--accent); color: #fff; border-color: var(--accent); animation: seatBounce 0.22s;}
+    @keyframes seatBounce { 0% { transform: scale(1); } 40% { transform: scale(1.18); } 100% { transform: scale(1); } }
+    .seat.booked {background: #e74c3c; color: #fff; border-color: #e74c3c; cursor: not-allowed; opacity: 0.7;}
+    .seat.unavailable {background: var(--seat-unavailable); color: #888; border-color: #23232a; cursor: not-allowed; opacity: 0.5;}
+    .seat-label {position: absolute; bottom: 2px; right: 2px; font-size: 0.7rem; color: #888; pointer-events: none;}
+    .seat-gap {width: 32px; height: 1px; display: inline-block;}
+    .seat-type-label {font-size: 1rem; font-weight: 700; color: #ffd600; margin: 1.2rem 0 0.5rem 0; text-align: left;}
+    .legend {display: flex;gap: 1.5rem; margin: 2.5rem 0 1.5rem 0; justify-content: center; align-items: center;}
+    .legend-item {display: flex; align-items: center; gap: 0.5rem; font-size: 1rem;}
+    .legend-box {width: 22px; height: 22px; border-radius: 5px; border: 2px solid #333; background: #fff;}
+    .legend-box.selected {background: var(--accent); border-color: var(--accent);}
+    .legend-box.booked {background: #e74c3c; border-color: #e74c3c;}
+    .legend-box.unavailable {background: #23232a; border-color: #23232a;}
+    .footer {width: 100vw; background: #181818; color: #b0b0b8; text-align: center; padding: 2.5rem 1rem 1.5rem 1rem; font-size: 1rem; border-top: 1px solid #23232a; margin-top: 2rem; flex-shrink: 0; position: relative; left: 50%; right: 50%; transform: translateX(-50%);}
+    .footer-content {max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;}
+    .footer-links {display: flex; justify-content: center; gap: 2rem; margin-bottom: 2rem; flex-wrap: wrap;}
+    .footer-links a {color: #fff; text-decoration: none; opacity: 0.7; font-weight: 500; font-size: 1.05rem; transition: color 0.2s, opacity 0.2s;}
+    .footer-links a:hover {color: #e74c3c; opacity: 1;}
+    .footer p {opacity: 0.7; font-size: 1rem; margin: 0.2rem 0;}
+    #userAreaPlaceholder{ margin-left:10px }
+    .user-area{ display:inline-flex; align-items:center; gap:8px; padding:6px 8px; border-radius:10px }
+    .user-avatar{ width:34px; height:34px; border-radius:50%; background: linear-gradient(135deg,#2b2b2f,#0f1113); display:inline-flex; align-items:center; justify-content:center; color:#fff; font-weight:700; border:1px solid rgba(255,255,255,0.06) }
+    .user-greet{ color:#fff; font-weight:600 }
+    .user-area {display: flex; align-items: center; gap: 0.75rem; cursor: pointer; padding: 0.25rem 0.5rem; border-radius: 12px; transition: background 0.18s;}
+    .user-area:hover { background: rgba(255,255,255,0.02); }
+    .user-avatar {width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg,#2b2b2f,#111); display: inline-flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; box-shadow: 0 4px 14px #0008; border: 1px solid rgba(255,255,255,0.06);}
+    .user-greet { font-size: 0.98rem; color: var(--text); font-weight:600; }
+    .user-panel-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 400; opacity:0; visibility:hidden; transition:opacity .18s; }
+    .user-panel { position: fixed; top: 0; right: 0; width: 360px; height: 100vh; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); backdrop-filter: blur(8px); box-shadow: -12px 0 40px #000a; z-index: 401; transform: translateX(110%); transition: transform .25s ease; border-left:1px solid rgba(255,255,255,0.04); padding: 1.2rem 1.2rem 3rem; display:flex; flex-direction:column; gap: 1rem; }
+    .user-panel.open { transform: translateX(0); }
+    .user-panel-backdrop.open { opacity:1; visibility:visible; }
+    .user-panel .panel-header { display:flex; gap: 1rem; align-items:center; }
+    .user-panel .panel-header .avatar-big { width:68px; height:68px; border-radius:50%; background:#222; display:inline-flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:1.2rem; border:1px solid rgba(255,255,255,0.04);}
+    .user-panel h3 { margin:0; font-size:1.2rem; }
+    .user-panel .menu { margin-top: 8px; display:flex; flex-direction:column; gap: 8px; }
+    .user-panel .menu a, .user-panel .menu button { text-align:left; background:none; border:none; color:var(--text); padding: 10px 8px; border-radius:8px; cursor:pointer; font-weight:600;}
+    .user-panel .menu a:hover, .user-panel .menu button:hover { background: rgba(255,255,255,0.02); color: var(--accent); }
+    .user-panel .signout { margin-top:18px; border-radius:12px; padding:12px; background: var(--accent-gradient); color:#fff; font-weight:700; box-shadow: 0 8px 24px rgba(66,133,244,0.12); border:none; cursor:pointer;}
+    /* Responsive */
+    @media (max-width: 900px) {
+      .main-content-wrap { padding: 0 0.5rem; }
+      .seat-row { gap: 0.5rem; }
+      .movie-poster { width: 50px; height: 70px; }
+    }
+    @media (max-width: 600px) {
+      .main-content-wrap { padding: 0 0.2rem; }
+      .seat-row-label { font-size: 0.9rem; }
+      .seat { width: 28px; height: 28px; font-size: 0.85rem; }
+      .legend { gap: 0.7rem; font-size: 0.95rem; }
+    }
+    .fixed-footer {position: fixed; left: 0; right: 0; bottom: 0; background: #000; border-top: 1px solid #23232a; box-shadow: 0 -2px 16px #23232a33; padding: 1.2rem 2rem 1.2rem 2rem; display: flex; align-items: center;justify-content: space-between; z-index: 200; min-height: 70px;}
+    .selected-seats {font-size: 1.1rem; color: var(--accent); font-weight: 700; margin-right: 1.5rem;}
+    .price-breakdown {color: #fff; font-size: 1.1rem; font-weight: 700; margin-right: 1.5rem;}
+    .proceed-btn {background: var(--accent-gradient); color: #fff; font-size: 1.1rem; font-weight: 700; border: none; border-radius: 12px; padding: 0.8rem 2.5rem; cursor: pointer; box-shadow: 0 2px 16px #4285f433; transition: background 0.2s, box-shadow 0.2s; opacity: 0.95;}
+    .proceed-btn:disabled {background: #23232a; color: #888; cursor: not-allowed; opacity: 0.7;}
+    .zoom-controls {position: absolute; right: 2rem; top: 2rem; display: flex; gap: 0.7rem; z-index: 10;}
+    .zoom-btn {background: #23232a; color: #fff; border: none; border-radius: 50%; width: 36px; height: 36px; font-size: 1.2rem; font-weight: 700; cursor: pointer; box-shadow: 0 2px 8px #23232a33; transition: background 0.2s, color 0.2s;}
+    .zoom-btn:hover { background: #333; color: #ffd600; }
+    .seat-tooltip {position: absolute; left: 50%; top: -38px; transform: translateX(-50%); background: #23232a; color: #fff; border-radius: 8px; padding: 0.3rem 1rem; font-size: 0.95rem; white-space: nowrap; box-shadow: 0 2px 8px #23232a33; opacity: 0; pointer-events: none; transition: opacity 0.18s; z-index: 20;}
+    #debugBox {position: fixed; right: 16px; bottom: 86px; background: rgba(0,0,0,0.6); color: #fff; padding: 8px 12px; border-radius: 10px; font-weight: 700; z-index: 9999; pointer-events: none; font-size: 0.95rem;}
+    .seat:hover .seat-tooltip {opacity: 1;}
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo">Ocassio</div>
+    <div class="nav-links">
+      <a href="{% url 'movies:home' %}">Movies</a>
+      <a href="{% url 'sports:home' %}">Sports</a>
+      <a href="#">Events</a>
+      <a href="{% url 'offers:home' %}">Offers</a>
+      <a href="{% url 'giftcards:home' %}">Gift Cards</a>
+      <div id="userAreaPlaceholder">
+        {% if user.is_authenticated %}
+        <div class="user-area" onclick="toggleUserPanel()">
+          <div class="user-avatar">{{ user.username|slice:":1"|upper }}</div>
+          <div class="user-greet">Hi, {{ user.first_name|default:user.username }}</div>
+        </div>
+        {% else %}
+          <button class="sign-btn" id="signBtn" onclick='window.location.href="{% url 'accounts:login' %}"'>Sign In/Sign Up</button>
+        {% endif %}
+      </div>
+    </div>
+    <button id="ticketBtn" class="ticket-btn" onclick="openTicketPicker()">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z" fill="#fff"/><path d="M20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="#fff"/></svg>
+      <span id="ticketLabel">10 Tickets</span>
+    </button>
+  </nav>
+  <div class="main-content-wrap">
+    <div id="modalBg" style="display:none;"></div>
+    <div class="top-section">
+      <button class="back-btn" onclick="window.history.back()">&#8592; Back</button>
+      <img class="movie-poster" src="{% static movie.poster %}" alt="{{ movie.title }} Poster"/>
+      <div class="movie-details">
+        <div class="movie-title">{{ movie.title }}</div>
+        <div class="movie-meta">{{ theatre_name }}<br>{{ showtime_date }} | {{ showtime_time }}</div>
+      </div>
+    </div>
+    <div class="progress-bar">
+      <span class="progress-step active"><span class="progress-dot"></span>1. Select Seats</span>
+      <span class="progress-step"><span class="progress-dot"></span>2. Payment</span>
+      <span class="progress-step"><span class="progress-dot"></span>3. Confirmation</span>
+    </div>
+    <div class="screen-label">SCREEN THIS SIDE</div>
+    <div class="screen-bar"></div>
+    <div class="zoom-controls">
+      <button class="zoom-btn" onclick="zoomMap(1.15)">+</button>
+      <button class="zoom-btn" onclick="zoomMap(0.87)">-</button>
+    </div>
+    <div class="seat-map" id="seatMap"></div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-box"></div> Available</div>
+      <div class="legend-item"><div class="legend-box selected"></div> Selected</div>
+      <div class="legend-item"><div class="legend-box booked"></div> Booked</div>
+      <div class="legend-item"><div class="legend-box unavailable"></div> Unavailable</div>
+    </div>
+  </div>
+  <div class="fixed-footer">
+    <div class="selected-seats" id="selectedSeats">Selected: None</div>
+    <div class="price-breakdown" id="priceBreakdown">Ticket ₹0 x 0 = ₹0</div>
+    <button class="proceed-btn" id="proceedBtn" disabled>Proceed to Payment</button>
+  </div>
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-links">
+        <a href="#">About Us</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+        <a href="#">FAQ</a>
+        <a href="#">Contact</a>
+        <a href="#">Careers</a>
+        <a href="#">Press</a>
+      </div>
+      <p>Available in 50+ cities across India. Experience the future of movie booking.</p>
+      <p style="margin-top: 1rem; font-size: 0.8rem; opacity: 0.5;">
+        © 2024 Ocassio. All rights reserved. Prices and availability subject to change.
+      </p>
+      <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.75; display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap;">
+        Designed by <strong>Krish Koli</strong> •
+        <a href="https://instagram.com/krishkoli021" target="_blank" style="color: #e74c3c; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+          <img src="https://img.icons8.com/ios-filled/50/ffffff/instagram-new.png" alt="Instagram" style="width: 16px; height: 16px;">
+          @krishkoli021
+        </a>
+      </p>
+    </div>
+  </footer>
+  <!-- User panel injected for session-aware navbar -->
+  <div id="userPanelBackdrop" class="user-panel-backdrop" onclick="closeUserPanel()"></div>
+  <aside id="userPanel" class="user-panel" aria-hidden="true">
+    <div class="panel-header">
+      <div id="panelAvatar" class="avatar-big">
+        {% if request.user.is_authenticated %}{{ request.user.username|slice:":1"|upper }}{% else %}G{% endif %}
+      </div>
+      <div>
+        <div id="panelName" class="panel-name">
+          {% if request.user.is_authenticated %}{{ request.user.first_name|default:request.user.username }}{% else %}Guest{% endif %}
+        </div>
+        <div id="panelEmail" style="opacity:.8;font-size:.95rem;color:var(--text-muted)" class="panel-email">
+          {% if request.user.is_authenticated %}{{ request.user.email }}{% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="menu">
+      <button onclick="openProfile()">Edit Profile</button>
+      <button onclick="openOrders()">Your Orders</button>
+      <button onclick="openStream()">Stream Library</button>
+      <button onclick="openHelp()">Help & Support</button>
+      <button onclick="openSettings()">Accounts & Settings</button>
+      <button onclick="openRewards()">Rewards</button>
+    </div>
+    <button class="signout" onclick="signOut()">Sign out</button>
+  </aside>
+  <script>
+    function updateUserArea() {
+        const placeholder = document.getElementById('userAreaPlaceholder');
+        if (!placeholder) return;
+
+        {% if user.is_authenticated %}
+            const initial = "{{ user.username|slice:":1"|upper }}";
+            const name = "{{ user.first_name|default:user.username }}";
+            placeholder.innerHTML = `
+                <div class="user-area" onclick="toggleUserPanel()">
+                    <div class="user-avatar">${initial}</div>
+                    <div class="user-greet">Hi, ${name}</div>
+                </div>`;
+        {% else %}
+            placeholder.innerHTML = `<button class="sign-btn" onclick="window.location.href='{% url "accounts:login" %}'">Sign In / Sign Up</button>`;
+        {% endif %}
+    }
+    // --- User Panel Toggle ---
+    function toggleUserPanel() {
+        const backdrop = document.getElementById('userPanelBackdrop');
+        const panel = document.getElementById('userPanel');
+        const isOpen = panel.classList.toggle('open');
+        backdrop.classList.toggle('open', isOpen);
+        panel.setAttribute('aria-hidden', !isOpen);
+    }
+    function closeUserPanel() {
+        const backdrop = document.getElementById('userPanelBackdrop');
+        const panel = document.getElementById('userPanel');
+        panel.classList.remove('open');
+        backdrop.classList.remove('open');
+        panel.setAttribute('aria-hidden', 'true');
+    }
+    // --- Sign Out ---
+    function signOut() {closeUserPanel(); window.location.href = "{% url 'accounts:logout' %}";}
+    // --- Demo panel navigation ---
+    function openProfile() { window.location.href = "{% url 'accounts:profile' %}"; }
+    function openOrders() { alert('Your Orders - not implemented yet'); }
+    function openStream() { alert('Stream Library - not implemented yet'); }
+    function openHelp() { alert('Help & Support - not implemented yet'); }
+    function openSettings() { alert('Accounts & Settings - not implemented yet'); }
+    function openRewards() { alert('Rewards - not implemented yet'); }
+    // --- Initialize on DOMContentLoaded ---
+    document.addEventListener('DOMContentLoaded', function() {updateUserArea();});
+  </script>
+  <style>
+    .modal-bg-occ {position: fixed; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.55); z-index: 1000; display: flex; align-items: center; justify-content: center; animation: fadeInModalBg 0.2s;}
+    .modal-occ {background: var(--bg-glass); border-radius: 22px; box-shadow: 0 8px 32px #23232a66; padding: 2.5rem 2.5rem 2rem 2.5rem; min-width: 340px; max-width: 95vw;text-align: center; position: relative; animation: fadeInModal 0.2s; color: #fff; border: 1.5px solid #4285f4; backdrop-filter: blur(12px);}
+    .modal-occ h2 {font-size: 1.3rem; font-weight: 800; margin-bottom: 1.2rem; color: #fff;}
+    .modal-occ .seat-counts {display: flex; gap: 0.7rem; justify-content: center; margin: 1.2rem 0 1.5rem 0;}
+    .modal-occ .seat-count-btn {width: 36px; height: 36px; border-radius: 50%; border: 2px solid #4285f4; background: transparent; color: #fff; font-size: 1.1rem; font-weight: 700; margin: 0 0.2rem; cursor: pointer; transition: background 0.18s, color 0.18s, border 0.18s;}
+    .modal-occ .seat-count-btn.selected {background: var(--accent-gradient); color: #fff; border-color: #34a853; box-shadow: 0 2px 12px #4285f433;}
+    .modal-occ .seat-types-row {display: flex; gap: 1.5rem; justify-content: center; margin: 1.2rem 0 1.5rem 0;}
+    .modal-occ .seat-type {display: flex; flex-direction: column; align-items: center; font-size: 1rem; font-weight: 600; min-width: 80px;}
+    .modal-occ .type-label {color: #b0b0b8; font-size: 0.98rem; font-weight: 500;}
+    .modal-occ .type-price {font-size: 1.1rem; font-weight: 700; color: #fff;}
+    .modal-occ .type-status.available { color: #34a853; }
+    .modal-occ .type-status.filling { color: #ffd600; }
+    .modal-occ .type-status.almost { color: #ff9800; }
+    .modal-occ .select-seats-btn {background: var(--accent-gradient); color: #fff; font-size: 1.1rem; font-weight: 700; border: none; border-radius: 12px; padding: 0.7rem 2.5rem; margin-top: 1.5rem; cursor: pointer; box-shadow: 0 2px 16px #4285f433; transition: background 0.2s, box-shadow 0.2s;}
+    .modal-occ .select-seats-btn:disabled {background: #23232a; color: #888; cursor: not-allowed; opacity: 0.7;}
+    .modal-occ .close-btn {position: absolute; top: 1.2rem; right: 1.2rem; background: none; border: none; font-size: 1.5rem; color: #888; cursor: pointer; transition: color 0.2s;}
+    .modal-occ .close-btn:hover { color: #4285f4; }
+    .modal-occ img { margin:0.5rem auto 1.2rem auto; }
+  </style>
+  <script>
+    function setTicketLabel(count){
+      const lbl = document.getElementById('ticketLabel');
+      if(!lbl) return;
+      if(count && count>1) lbl.textContent = count + ' Tickets';
+      else if(count===1) lbl.textContent = '1 Ticket';
+      else lbl.textContent = 'Select Tickets';
+    }
+    function openTicketPicker(){
+      showSeatCountModal(function(count){
+        seatCount = count;
+        setTicketLabel(count);
+        selectedSeats = [];
+        renderSeatMap();
+        updateFooter();
+      });
+    }
+    // Ensure ticket label reflects default
+    document.addEventListener('DOMContentLoaded', ()=>{
+      setTicketLabel(seatCount || 10);
+    });
+    // --- Modal for seat count selection ---
+    const seatCountImgs = [
+      'https://img.icons8.com/color/96/000000/bicycle--v2.png',
+      'https://img.icons8.com/color/96/000000/scooter.png',
+      'https://img.icons8.com/color/96/000000/auto-rickshaw.png',
+      'https://img.icons8.com/color/96/000000/car--v2.png',
+      'https://img.icons8.com/color/96/000000/sedan.png',
+      'https://img.icons8.com/color/96/000000/suv.png',
+      'https://img.icons8.com/color/96/000000/van.png',
+      'https://img.icons8.com/color/96/000000/minivan.png',
+      'https://img.icons8.com/color/96/000000/bus.png',
+      'https://img.icons8.com/color/96/000000/bus.png'
+    ];
+    function showSeatCountModal(onSelect) {
+      const modalBg = document.getElementById('modalBg');
+      modalBg.innerHTML = `<div class='modal-bg-occ'><div class='modal-occ'>
+        <button class='close-btn' onclick='closeModal()'>&times;</button>
+        <h2>How many seats?</h2>
+        <img id='seatCountImg' src='${seatCountImgs[0]}' style='margin:0.5rem auto 1.2rem auto;'/>
+        <div class='seat-counts'>
+          ${Array.from({length:10},(_,i)=>`<button class='seat-count-btn' data-count='${i+1}'>${i+1}</button>`).join('')}
+        </div>
+        <div class='seat-types-row'>
+          <div class='seat-type'><span class='type-label'>NORMAL</span><span class='type-price'>₹400</span><span class='type-status available'>AVAILABLE</span></div>
+          <div class='seat-type'><span class='type-label'>EXECUTIVE</span><span class='type-price'>₹450</span><span class='type-status available'>AVAILABLE</span></div>
+          <div class='seat-type'><span class='type-label'>PREMIUM</span><span class='type-price'>₹500</span><span class='type-status filling'>FILLING FAST</span></div>
+          <div class='seat-type'><span class='type-label'>VIP</span><span class='type-price'>₹800</span><span class='type-status almost'>ALMOST FULL</span></div>
+        </div>
+        <button class='select-seats-btn' style='margin-top:1.5rem;' disabled>Select Seats</button>
+      </div></div>`;
+      modalBg.style.display = 'block';
+      let selectedCount = null;
+      const img = modalBg.querySelector('#seatCountImg');
+      modalBg.querySelectorAll('.seat-count-btn').forEach((btn, idx) => {
+        btn.onclick = () => {
+          modalBg.querySelectorAll('.seat-count-btn').forEach(b=>b.classList.remove('selected'));
+          btn.classList.add('selected');
+          selectedCount = parseInt(btn.getAttribute('data-count'));
+          img.src = seatCountImgs[idx];
+          modalBg.querySelector('.select-seats-btn').disabled = false;
+        };
+      });
+      modalBg.querySelector('.select-seats-btn').onclick = () => {
+        if(selectedCount) {
+          closeModal();
+          if(typeof onSelect==='function') onSelect(selectedCount);
+        }
+      };
+    }
+    function closeModal() {
+      document.getElementById('modalBg').style.display = 'none';
+    }
+  </script>
+  <script>
+  // --- Seat Map Data ---
+  const seatTypes = [
+    { label: 'Normal', price: 400, rows: ['A','B','C','D'] },
+    { label: 'Executive', price: 450, rows: ['E','F','G'] },
+    { label: 'Premium', price: 500, rows: ['H','I'] },
+    { label: 'VIP', price: 800, rows: ['J'] }
+  ];
+  const seatMap = [];
+  const aisles = [4,8]; // after 4th and 8th seat, add aisle
+
+  for(let i=0; i<10; i++){
+    const rowLabel = String.fromCharCode(65+i);
+    const rowType = seatTypes.find(t=>t.rows.includes(rowLabel));
+    const row = [];
+    for(let j=1; j<=12; j++){
+      row.push({ label: rowLabel+j, row: rowLabel, num: j, type: rowType.label, price: rowType.price, status: 'available' });
+    }
+    seatMap.push(row);
+  }
+
+  // --- Fetch seats from backend ---
+  async function loadSeatsFromServer(showtimeId) {
+    try {
+      const response = await fetch(`/movies/showtime/${showtimeId}/seats/`);
+      const data = await response.json();
+      const serverSeats = data.seats;
+
+      // Update local seat map
+      serverSeats.forEach(srv => {
+        const row = seatMap.find(r => r[0].row === srv.row);
+        if (!row) return;
+        const seatObj = row.find(s => s.num === srv.number);
+        if (!seatObj) return;
+        seatObj.status = srv.status;
+        seatObj.price = srv.price;
+      });
+
+      // --- 🎲 Add random demo booked seats ---
+      const allAvailableSeats = seatMap.flat().filter(s => s.status === "available");
+      const totalSeats = allAvailableSeats.length;
+      const randomCount = Math.floor(totalSeats * 0.15); // ~15% of seats look booked
+
+      for (let i = 0; i < randomCount; i++) {
+        const randomSeat = allAvailableSeats[Math.floor(Math.random() * totalSeats)];
+        if (randomSeat) randomSeat.status = "booked";
+      }
+
+      renderSeatMap();
+      updateFooter();
+    } catch (error) {
+      console.error("Error loading seat data:", error);
+    }
+  }
+
+  // --- Render seat map ---
+  let selectedSeats = [];
+  let movie_slug = '{{ movie.slug }}';
+  let showtimeId = JSON.parse('{{ showtime_id|default:0 }}');
+  let zoom = 1;
+  let seatCount = 0;
+
+  function renderSeatMap() {
+    const mapDiv = document.getElementById('seatMap');
+    mapDiv.style.transform = `scale(${zoom})`;
+    mapDiv.innerHTML = '';
+
+    seatMap.forEach((row, i) => {
+      const rowType = seatTypes.find(t => t.rows.includes(row[0].row));
+
+      // Show label before first row of each seat type
+      if (i === 0 || seatTypes.some(t => t.rows.includes(row[0].row) && t.rows[0] === row[0].row)) {
+        mapDiv.insertAdjacentHTML('beforeend', `<div class='seat-type-label'>${rowType.label} ₹${rowType.price}</div>`);
+      }
+
+      const rowDiv = document.createElement('div');
+      rowDiv.className = 'seat-row';
+
+      const label = document.createElement('span');
+      label.className = 'seat-row-label';
+      label.textContent = row[0].row;
+      rowDiv.appendChild(label);
+
+      row.forEach((seat, idx) => {
+        if (aisles.includes(idx)) {
+          const gap = document.createElement('span');
+          gap.className = 'seat-gap';
+          rowDiv.appendChild(gap);
+        }
+
+        const seatDiv = document.createElement('div');
+        seatDiv.className = 'seat ' + seat.status;
+        seatDiv.dataset.row = seat.row;
+        seatDiv.dataset.num = seat.num;
+
+        if (selectedSeats.some(s => s.row === seat.row && s.num === seat.num))
+          seatDiv.classList.add('selected');
+
+        seatDiv.tabIndex = seat.status === 'available' ? 0 : -1;
+        seatDiv.innerHTML = seat.num + `<span class='seat-label'>${seat.row + seat.num}</span>`;
+
+        seatDiv.onmouseenter = function() {
+          if (seat.status === 'available') {
+            const tooltip = document.createElement('div');
+            tooltip.className = 'seat-tooltip';
+            tooltip.textContent = seat.type + ' ₹' + seat.price;
+            seatDiv.appendChild(tooltip);
+          }
+        };
+        seatDiv.onmouseleave = function() {
+          const tooltip = seatDiv.querySelector('.seat-tooltip');
+          if (tooltip) seatDiv.removeChild(tooltip);
+        };
+
+        seatDiv.onclick = function() {
+          const drow = this.dataset.row;
+          const dnum = parseInt(this.dataset.num, 10);
+          const rowSeats = seatMap.find(r => r[0].row === drow);
+          if (!rowSeats) return;
+          const startIdx = rowSeats.findIndex(s => s.row === drow && s.num === dnum);
+          if (startIdx === -1) return;
+          const seatObj = rowSeats[startIdx];
+          if (seatObj.status !== 'available') return;
+          if (!seatCount || seatCount <= 0) {
+            showSeatCountModal(function(count) {
+              seatCount = count;
+              selectedSeats = [];
+              renderSeatMap();
+              updateFooter();
+            });
+            return;
+          }
+          // If clicked seat already selected → reset selection
+          if (selectedSeats.some(s => s.row === drow && s.num === dnum)) {
+            selectedSeats = [];
+            renderSeatMap();
+            updateFooter();
+            return;
+          }
+          // New contiguous selection
+          selectedSeats = [];
+          const seatsNeeded = seatCount;
+          const selectedInThisClick = [];
+          // Expand right
+          for (let k = startIdx; k < rowSeats.length && selectedInThisClick.length < seatsNeeded; k++) {
+            const s = rowSeats[k];
+            if (s.status === 'available') selectedInThisClick.push(s); else break;
+          }
+          // Expand left if needed
+          if (selectedInThisClick.length < seatsNeeded) {
+            for (let k = startIdx - 1; k >= 0 && selectedInThisClick.length < seatsNeeded; k--) {
+              const s = rowSeats[k];
+              if (s.status === 'available') selectedInThisClick.unshift(s); else break;
+            }
+          }
+          selectedSeats = selectedInThisClick.slice(0, seatsNeeded);
+          renderSeatMap();
+          updateFooter();
+        };
+        rowDiv.appendChild(seatDiv);
+      });
+      mapDiv.appendChild(rowDiv);
+    });
+  }
+  // --- Update footer ---
+  function updateFooter() {
+    const sel = selectedSeats;
+    const proceedBtn = document.getElementById('proceedBtn');
+    document.getElementById('selectedSeats').textContent = sel.length
+      ? 'Selected: ' + sel.map(s => s.row + s.num).join(', ')
+      : 'Selected: None';
+    let total = sel.reduce((sum, s) => sum + s.price, 0);
+    let priceStr = '';
+    if (sel.length) {
+      const byType = {};
+      sel.forEach(s => {
+        if (!byType[s.type]) byType[s.type] = { count: 0, price: s.price };
+        byType[s.type].count++;
+      });
+      priceStr = Object.entries(byType)
+        .map(([type, info]) => `₹${info.price} x ${info.count}`)
+        .join(' + ');
+      priceStr += ` = ₹${total}`;
+    } else {
+      priceStr = 'Ticket ₹0 x 0 = ₹0';
+    }
+
+    document.getElementById('priceBreakdown').textContent = priceStr;
+    proceedBtn.disabled = sel.length === 0;
+
+    proceedBtn.onclick = function() {
+      if (sel.length === 0) return;
+      const total = sel.reduce((sum, s) => sum + s.price, 0);
+      const avgPrice = sel.length ? Math.round(total / sel.length) : 0;
+      sessionStorage.setItem('selectedSeats', JSON.stringify(sel));
+      sessionStorage.setItem('totalPrice', total);
+      sessionStorage.setItem('avgPrice', avgPrice);
+      sessionStorage.setItem('seatCount', sel.length);
+      window.location.href = `/movies/${movie_slug}/payment/?showtime_id=${showtimeId}`;
+    };
+  }
+
+  // --- Zoom control ---
+  function zoomMap(factor) {
+    zoom = Math.max(0.7, Math.min(1.7, zoom * factor));
+    renderSeatMap();
+  }
+  // --- Page Load ---
+  window.onload = function() {
+    loadSeatsFromServer(showtimeId);
+    showSeatCountModal(function(count) { seatCount = count; selectedSeats = []; updateFooter(); });
+  };
+  renderSeatMap();
+  updateFooter();
+  </script>
+</body>
+</html>

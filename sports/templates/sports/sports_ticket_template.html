@@ -1,0 +1,147 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ocassio Sports Ticket</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap">
+  <style>
+    :root{
+      --bg:#000;
+      --muted:#9ca3af;
+      --accent:#4285f4;
+      --default:#cfcfcf;
+      --sold:#374151;
+      --stadium:#3fa14a;
+      --bg-glass: rgba(0,0,0,0.8);
+      --accent-gradient: linear-gradient(135deg,#4285f4 0%, #34a853 100%);
+      --radius: 14px;
+    }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+    body {font-family: 'Inter', sans-serif; background: #121212; color: #f1f1f1; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0;}
+    .ticket {width: 360px; background: #1c1c1e; border-radius: 20px; overflow: hidden; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5); border: 1px solid #2a2a2d; position: relative;}
+    /* --- Header Section --- */
+    .header {background: linear-gradient(135deg, #4285f4, #34a853); display: flex; align-items: center; padding: 16px;}
+    .poster {width: 60px; height: 90px; border-radius: 10px; overflow: hidden; margin-right: 14px; flex-shrink: 0; border: 2px solid rgba(255, 255, 255, 0.25);}
+    /* download button */
+    .download-btn{margin-left:auto; background: rgba(255,255,255,0.06); border-radius: 10px; padding: 8px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; border: 1px solid rgba(255,255,255,0.04); transition: all .18s ease;}
+    .download-btn:hover{ transform: translateY(-2px); box-shadow: 0 8px 24px rgba(66,133,244,0.08) }
+    .download-btn svg{ width:18px;height:18px;display:block }
+    .poster img {width: 100%; height: 100%; object-fit: cover;}
+    .movie-info h2 {font-size: 16px; margin: 0; font-weight: 600; color: #fff;}
+    .movie-info p {margin: 3px 0; font-size: 13px; color: #f0f0f0;}
+    /* --- Details Section --- */
+    .details {text-align: center; padding: 16px; background-color: #1f1f22;}
+    .details h3 {font-size: 14px; font-weight: 600; margin-bottom: 4px; color: #fefefe;}
+    .details p {margin: 2px 0; font-size: 13px; color: #ccc;}
+    /* --- QR Section --- */
+    .qr {display: flex; justify-content: center; padding: 14px 0 6px; background-color: #1f1f22;}
+    .qr img {width: 120px; height: 120px; border-radius: 8px; background: #fff; padding: 6px;}
+    /* --- Cancellation Info --- */
+    .cancel-info {text-align: center; font-size: 12px; color: #bbb; padding: 8px 16px 16px; background-color: #1f1f22; line-height: 1.4;}
+    .cancel-info span {color: #ff6b6b; font-weight: 500;}
+    /* --- Divider --- */
+    .divider {border-top: 1px dashed rgba(255, 255, 255, 0.2); margin: 0 16px;}
+    /* --- Amount Section --- */
+    .amount {padding: 16px; font-size: 14px; color: #eee;}
+    .amount div {display: flex; justify-content: space-between; margin: 6px 0;}
+    .amount div.total {font-weight: 600; font-size: 15px; color: #fff;}
+    /* --- Footer --- */
+    .footer {text-align: center; padding: 14px; font-size: 12px; color: #999; border-top: 1px solid rgba(255, 255, 255, 0.1); background-color: #1a1a1c;}
+    /* --- Shadow Edge for Depth --- */
+    .ticket::after {content: ''; position: absolute; width: 100%; height: 8px; background: radial-gradient(circle at 50% 0, #000 0%, transparent 70%); bottom: -8px; left: 0;}
+    #movieMeta {white-space: pre-line;}
+  </style>
+</head>
+<body>
+  <div class="ticket ticket--accent">
+    <div class="header ticket__header--accent">
+      <div class="poster">
+        <img id="matchPoster" src="" alt="Match Poster" />
+      </div>
+      <div class="match-info">
+        <h2 id="matchTitle"></h2>
+        <p id="matchMeta"></p>
+      </div>
+      <!-- download logo/button -->
+      <button class="download-btn" id="downloadTicket" title="Download ticket as PDF" aria-label="Download ticket as PDF">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 3v10" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M12 3v10" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M8 11l4 4 4-4" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M21 21H3" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+    <div class="details">
+      <h3 id="standInfo">Stand - Ring</h3>
+      <p id="ticketCount">Tickets: 0</p>
+    </div>
+    <div class="qr">
+      <img id="qrCodeImg" src="" alt="QR Code" />
+    </div>
+    <div class="cancel-info">
+      Cancellation Unavailable: <span>Cut-off time of 20 minutes before the showtime has passed.</span>
+    </div>
+    <div class="divider"></div>
+    <div class="amount">
+      <div><span>Ticket(s) price</span><span id="priceBase">₹0</span></div>
+      <div><span>Convenience fee</span><span>₹0.00</span></div>
+      <div><span>Discount</span><span>- ₹0.00</span></div>
+      <div class="total"><span>Total Amount</span><span id="totalPrice">₹0</span></div>
+    </div>
+    <div class="footer ticket__footer--accent">
+      Payment Method: <span id="paymentMethod">Loading...</span>
+    </div>
+  </div>
+  <!-- scripts for download to PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const confirmedMatch = sessionStorage.getItem("confirmedMatch") || "Unknown Match";
+    const confirmedBay = JSON.parse(sessionStorage.getItem("confirmedBay") || "{}");
+    const confirmedPoster = sessionStorage.getItem('confirmedPoster') || "{% static 'sports/default_match.jpg' %}";
+    const confirmedVenue = sessionStorage.getItem('confirmedVenue') || '';
+    const confirmedDate = sessionStorage.getItem('confirmedDate') || '';
+    const totalPrice = sessionStorage.getItem("confirmedTotal") || "0";
+    const selectedMethod = sessionStorage.getItem("confirmedMethod") || "Card";
+    const ticketCount = sessionStorage.getItem("ticketCount") || "1";
+    const qrImg = sessionStorage.getItem("sportsQR") || "{% static 'sports/qr-placeholder.png' %}";
+    // Generate seat numbers dynamically based on number of tickets
+    let seatNumbers = [];
+    if (confirmedBay && confirmedBay.standName) {
+      const standCode = confirmedBay.standName.replace(/\s+/g, '').substring(0, 3).toUpperCase();
+      const startSeat = Math.floor(Math.random() * 200) + 1; // starting seat number between 1–200
+      const ticketCountNum = parseInt(ticketCount) || 1;
+      for (let i = 0; i < ticketCountNum; i++) {
+        const seatNo = String(startSeat + i).padStart(3, '0'); // pad like 001, 002
+        seatNumbers.push(`${standCode}-${seatNo}`);
+      }
+    }
+
+    // Fill data
+    document.getElementById("matchTitle").textContent = confirmedMatch;
+    document.getElementById("matchPoster").src = confirmedPoster;
+    document.getElementById("matchMeta").textContent =`${confirmedVenue}\n${new Date(confirmedDate).toDateString()}\nStand: ${confirmedBay.standName || confirmedBay.stand}\nRing: ${confirmedBay.ring}`;
+    document.getElementById("matchMeta").textContent = `${confirmedVenue}\n${new Date(confirmedDate).toDateString()}`;
+    document.getElementById("standInfo").textContent = `${confirmedBay.standName || confirmedBay.stand || 'Unknown Stand'} — Ring ${confirmedBay.ring || 'N/A'}`;
+    document.getElementById("ticketCount").textContent = `Tickets: ${ticketCount}`;
+    document.getElementById("ticketCount").insertAdjacentHTML('afterend',`<p>Seat No${seatNumbers.length > 1 ? 's' : ''}: ${seatNumbers.join(', ')}</p>`);
+    document.getElementById("qrCodeImg").src = qrImg;
+    document.getElementById("priceBase").textContent = "₹" + totalPrice;
+    document.getElementById("totalPrice").textContent = "₹" + totalPrice;
+    document.getElementById("paymentMethod").textContent = selectedMethod;
+
+    document.getElementById('downloadTicket').addEventListener('click', async () => {
+      const el = document.querySelector('.ticket');
+      const canvas = await html2canvas(el, { scale: 2, backgroundColor: null });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jspdf.jsPDF({ unit: 'px', format: [canvas.width, canvas.height] });
+      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+      pdf.save('Ocassio_Sports_Ticket.pdf');
+    });
+  });
+  </script>
+</body>
+</html>

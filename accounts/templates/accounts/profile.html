@@ -1,0 +1,129 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Ocassio - Profile</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg-dark:#05060a;
+      --card:#0b0c0f;
+      --text:#e6eef8;
+      --muted:#9aa3ad;
+      --accent: #4285f4;
+      --accent-green:#34a853;
+      --glass: rgba(255,255,255,0.02);
+      --radius:14px;
+    }
+    *{box-sizing:border-box}
+    body{ background: linear-gradient(180deg,#030405 0%, #061018 100%); color:var(--text); font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; margin:0; }
+    .container{max-width:980px; margin:4.25rem auto; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); padding:2rem; border-radius:18px; border:1px solid rgba(255,255,255,0.04); box-shadow: 0 10px 40px rgba(2,6,23,0.6);}
+    .back-link{ color:var(--accent); text-decoration:none; display:inline-block; margin-bottom:12px; font-weight:600 }
+    .header{ display:flex; gap:1rem; align-items:center; border-bottom:1px solid rgba(255,255,255,0.02); padding-bottom:1rem }
+    .avatar{ width:96px; height:96px; border-radius:50%; background:linear-gradient(180deg,#131519,#0b0c0f); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1.6rem; color:var(--text); border:1px solid rgba(255,255,255,0.04) }
+    .section-title{ grid-column:1/-1; font-weight:700; color:var(--text); margin-top:6px; margin-bottom:6px }
+    h1{ margin:0; font-size:1.6rem }
+    .sub{ color:var(--muted); margin-top:6px }
+    form{ margin-top:1.6rem; display:grid; grid-template-columns: 1fr 1fr; gap:14px }
+    label{ font-size:0.86rem; color:var(--muted); display:block; margin-bottom:6px }
+    input, select, textarea{background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); color:var(--text); padding:12px 14px; border-radius:10px; font-size:0.95rem; outline: none; transition: box-shadow .12s, border-color .12s, transform .08s;}
+    input:focus, select:focus, textarea:focus{ box-shadow: 0 6px 18px rgba(66,133,244,0.08); border-color: rgba(66,133,244,0.6); transform: translateY(-1px); }
+    .full{ grid-column: 1 / -1; }
+    .save-btn{background: linear-gradient(135deg, var(--accent), var(--accent-green)); color:#fff; border:none; padding:12px 18px; border-radius:12px; font-weight:700; cursor:pointer; box-shadow: 0 8px 26px rgba(66,133,244,0.14);}
+    /* Save-as buttons */
+    .save-as-wrap{ display:flex; gap:10px; margin-bottom:6px }
+    .save-as-btn{ padding:8px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.04); background:transparent; color:var(--text); cursor:pointer; font-weight:600 }
+    .save-as-btn.active{ background: linear-gradient(135deg,var(--accent),var(--accent-green)); color:white; box-shadow: 0 6px 20px rgba(66,133,244,0.12); }
+    /* Responsive */
+    @media (max-width:820px){ form{ grid-template-columns: 1fr; } .avatar{ width:80px;height:80px } .container{ margin:2rem 16px } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a class="back-link" href="{% url 'home' %}">← Back to Home</a>
+    <div class="header">
+      <div class="avatar" id="profileAvatar">{{ user.first_name|default:user.username|first|upper }}</div>
+      <div>
+        <h1 id="profileName">{{ user.get_full_name|default:user.username }}</h1>
+        <div id="profileEmail" style="color:var(--muted)">{{ user.email }}</div>
+      </div>
+    </div>
+
+    <form method="POST" id="profileForm">
+      {% csrf_token %}
+      <div class="section-title">Personal Details</div>
+      <div>
+        <label>First Name *</label>
+        <input name="first_name" type="text" value="{{ user.first_name }}" placeholder="Enter first name">
+      </div>
+      <div>
+        <label>Last Name *</label>
+        <input name="last_name" type="text" value="{{ user.last_name }}" placeholder="Enter last name">
+      </div>
+      <div class="full">
+        <label>Email ID *</label>
+        <input name="email" type="email" value="{{ user.email }}" placeholder="Enter Email ID">
+      </div>
+      <div>
+        <label>Mobile Number *</label>
+        <input name="mobile" type="text" value="{{ user.phone_number }}" placeholder="+91 Enter Mobile Number">
+      </div>
+      <div>
+        <label>Birthday (Optional)</label>
+        <input name="birthday" type="date" value="{{ user.birthday|date:'Y-m-d' }}">
+      </div>
+
+      <div style="grid-column:1/-1;">
+        <label style="display:block;margin-bottom:8px;font-weight:700;color:var(--muted)">Address</label>
+        <div class="save-as-wrap">
+          <button type="submit" name="save_as" value="home" class="save-as-btn {% if user.address_type == 'home' %}active{% endif %}">Home</button>
+          <button type="submit" name="save_as" value="work" class="save-as-btn {% if user.address_type == 'work' %}active{% endif %}">Work</button>
+          <button type="submit" name="save_as" value="other" class="save-as-btn {% if user.address_type == 'other' %}active{% endif %}">Other</button>
+        </div>
+      </div>
+
+      <div class="full">
+        <label>Address Line 1 *</label>
+        <input name="addr1" type="text" value="{{ user.address_line1 }}" placeholder="Enter Address Line 1">
+      </div>
+      <div class="full">
+        <label>Address Line 2</label>
+        <input name="addr2" type="text" value="{{ user.address_line2 }}" placeholder="Enter Address Line 2">
+      </div>
+      <div>
+        <label>Landmark</label>
+        <input name="landmark" type="text" value="{{ user.landmark }}" placeholder="Enter Landmark">
+      </div>
+      <div>
+        <label>Pin Code *</label>
+        <input name="pincode" type="text" value="{{ user.pincode }}" placeholder="Enter Pin Code">
+      </div>
+      <div>
+        <label>City *</label>
+        <input name="city" type="text" value="{{ user.city }}" placeholder="Enter City">
+      </div>
+      <div>
+        <label>State *</label>
+        <input name="state" type="text" value="{{ user.state }}" placeholder="Enter State">
+      </div>
+
+      <div class="full" style="display:flex;justify-content:flex-end;margin-top:12px">
+        <button class="save-btn" type="submit">Save Changes</button>
+      </div>
+    </form>
+  </div>
+  <script>
+    function setSaveAs(val, save=true){
+      window._ocassio_saveAs = val;
+      ['saveAsHome','saveAsWork','saveAsOther'].forEach(id => document.getElementById(id).classList.remove('active'));
+      if(val === 'home') document.getElementById('saveAsHome').classList.add('active');
+      if(val === 'work') document.getElementById('saveAsWork').classList.add('active');
+      if(val === 'other') document.getElementById('saveAsOther').classList.add('active');
+      if(save){ const s = getSession() || {}; s.saveAs = val; setSession(s); }
+    }
+    document.addEventListener('DOMContentLoaded', loadProfile);
+  </script>
+</body>
+</html>

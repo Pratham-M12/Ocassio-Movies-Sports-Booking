@@ -1,0 +1,432 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ocassio Gift Cards</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+    html, body {
+      height: 100%;
+    }
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+      --bg-dark: #000;
+      --bg-glass: rgba(0,0,0,0.8);
+      --accent: #4285f4;
+      --accent-green: #34a853;
+      --accent-gradient: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+      --text: #fff;
+      --text-muted: #b0b0b8;
+      --radius: 18px;
+    }
+    body {
+      background: var(--bg-dark);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      min-height: 100vh;
+    }
+    .navbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.2rem 2.5rem;
+      background: var(--bg-glass);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid #23232a;
+      transition: background 0.3s;
+    }
+    .logo {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: var(--text);
+      text-shadow: 0 4px 24px #4285f4aa;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+    .nav-links a {
+      color: var(--text);
+      font-weight: 500;
+      text-decoration: none;
+      transition: color 0.2s, opacity 0.2s;
+      opacity: 0.85;
+    }
+    .nav-links a:hover,
+    .nav-links a.active {
+      color: var(--accent);
+      opacity: 1;
+    }
+    .sign-btn {
+      background: var(--accent-gradient);
+      color: #fff;
+      font-weight: 700;
+      border: none;
+      border-radius: var(--radius);
+      padding: 0.6rem 1.5rem;
+      margin-left: 1.5rem;
+      cursor: pointer;
+      font-size: 1rem;
+      box-shadow: 0 2px 16px #4285f433;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .sign-btn:hover {
+      transform: translateY(-2px) scale(1.04);
+      box-shadow: 0 8px 32px #4285f488;
+      background: linear-gradient(135deg, #34a853 0%, #4285f4 100%);
+    }
+    .main-content-wrap {
+  max-width: 1300px;
+  margin: 7.5rem auto 0 auto;
+  gap: 2.5rem;
+  padding: 0 2rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
+  background: #000;
+  color: #b0b0b8;
+  text-align: center;
+  padding: 2.5rem 1rem 1.5rem 1rem;
+  font-size: 1rem;
+  border-top: 1px solid #23232a;
+  margin-top: 2rem;
+  flex-shrink: 0;
+    }
+    .tabs {
+      display: flex;
+      gap: 2rem;
+      margin-bottom: 2.5rem;
+      border-bottom: 2px solid #23232a;
+    }
+    .tab {
+      padding: 0.7rem 2.2rem;
+      font-size: 1.1rem;
+      font-weight: 700;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      color: var(--text);
+      transition: border 0.2s, color 0.2s;
+    }
+    .tab.active {
+      border-bottom: 3px solid var(--accent);
+      color: var(--accent);
+    }
+    .filter-bar {
+      display: flex;
+      gap: 1.2rem;
+      margin-bottom: 2.2rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .filter-btn {
+      background: rgba(255,255,255,0.05);
+      border: none;
+      border-radius: 16px;
+      padding: 0.5rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .filter-btn.active, .filter-btn:hover {
+      background: var(--accent);
+      color: #fff;
+    }
+    .gift-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 2rem;
+    }
+    .gift-card {
+      background: rgba(255,255,255,0.05);
+      border-radius: var(--radius);
+      box-shadow: 0 2px 12px #4285f422;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      transition: box-shadow 0.2s, transform 0.2s;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .gift-card:hover {
+      box-shadow: 0 8px 32px #4285f488;
+      transform: translateY(-4px) scale(1.03);
+    }
+    .gift-img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  background: #23232a;
+    }
+    .gift-info {
+      padding: 1.2rem 1.2rem 1.5rem 1.2rem;
+      width: 100%;
+    }
+    .gift-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+    .gift-desc {
+      font-size: 0.98rem;
+      color: var(--text-muted);
+      opacity: 0.85;
+    }
+    .footer {
+      width: 100vw;
+      background: #000;
+      color: #b0b0b8;
+      text-align: center;
+      padding: 2.5rem 1rem 1.5rem 1rem;
+      font-size: 1rem;
+      border-top: 1px solid #23232a;
+      margin-top: 2rem;
+      flex-shrink: 0;
+      position: relative;
+      left: 50%;
+      right: 50%;
+      transform: translateX(-50%);
+    }
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+    .footer-links a {
+      color: #fff;
+      text-decoration: none;
+      opacity: 0.7;
+      font-weight: 500;
+      font-size: 1.05rem;
+      transition: color 0.2s, opacity 0.2s;
+    }
+    .footer-links a:hover {
+      color: #4285f4;
+      opacity: 1;
+    }
+    .footer p {
+      opacity: 0.7;
+      font-size: 1rem;
+      margin: 0.2rem 0;
+    }
+    @media (max-width: 1100px) {
+      .main-content-wrap { padding: 0 0.5rem; }
+    }
+    @media (max-width: 700px) {
+      .main-content-wrap { padding: 0 0.2rem; }
+      .tabs { gap: 1rem; }
+      .filter-bar { gap: 0.5rem; }
+      .gift-grid { gap: 1rem; }
+      .gift-img { height: 120px; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo">Ocassio</div>
+    <div class="nav-links">
+      <a href="{% url 'movies:home' %}">Movies</a>
+      <a href="{% url 'sports:home' %}">Sports</a>
+      <a href="#">Events</a>
+      <a href="{% url 'offers:home' %}">Offers</a>
+      <a href="#" class="active">Gift Cards</a>
+      <div id="userAreaPlaceholder">
+        {% if user.is_authenticated %}
+        <div class="user-area" onclick="toggleUserPanel()">
+          <div class="user-avatar">{{ user.username|slice:":1"|upper }}</div>
+          <div class="user-greet">Hi, {{ user.first_name|default:user.username }}</div>
+        </div>
+        {% else %}
+          <button class="sign-btn" id="signBtn" onclick='window.location.href="{% url 'accounts:login' %}"'>Sign In/Sign Up</button>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+  <!-- User panel markup (same behavior as main.html) -->
+  <div id="userPanelBackdrop" class="user-panel-backdrop" onclick="closeUserPanel()"></div>
+  <aside id="userPanel" class="user-panel" aria-hidden="true">
+    <div class="panel-header">
+      <div id="panelAvatar" class="avatar-big">
+        {% if request.user.is_authenticated %}{{ request.user.username|slice:":1"|upper }}{% else %}G{% endif %}
+      </div>
+      <div>
+        <div id="panelName" class="panel-name">
+          {% if request.user.is_authenticated %}{{ request.user.first_name|default:request.user.username }}{% else %}Guest{% endif %}
+        </div>
+        <div id="panelEmail" style="opacity:.8;font-size:.95rem;color:var(--text-muted)" class="panel-email">
+          {% if request.user.is_authenticated %}{{ request.user.email }}{% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="menu">
+      <button onclick="openProfile()">Edit Profile</button>
+      <button onclick="openOrders()">Your Orders</button>
+      <button onclick="openStream()">Stream Library</button>
+      <button onclick="openHelp()">Help & Support</button>
+      <button onclick="openSettings()">Accounts & Settings</button>
+      <button onclick="openRewards()">Rewards</button>
+    </div>
+    <button class="signout" onclick="signOut()">Sign out</button>
+  </aside>
+
+  <style>
+    .user-panel-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 400; opacity:0; visibility:hidden; transition:opacity .18s; }
+    .user-panel { position: fixed; top: 0; right: 0; width: 360px; height: 100vh; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); backdrop-filter: blur(8px); box-shadow: -12px 0 40px #000a; z-index: 401; transform: translateX(110%); transition: transform .25s ease; border-left:1px solid rgba(255,255,255,0.04); padding: 1.2rem 1.2rem 3rem; display:flex; flex-direction:column; gap: 1rem; }
+    .user-panel.open { transform: translateX(0); }
+    .user-panel-backdrop.open { opacity:1; visibility:visible; }
+    .user-panel .panel-header { display:flex; gap: 1rem; align-items:center; }
+    .user-panel .panel-header .avatar-big { width:68px; height:68px; border-radius:50%; background:#222; display:inline-flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:1.2rem; border:1px solid rgba(255,255,255,0.04); }
+    .user-panel h3 { margin:0; font-size:1.2rem; }
+    .user-panel .menu { margin-top: 8px; display:flex; flex-direction:column; gap: 8px; }
+    .user-panel .menu a, .user-panel .menu button { text-align:left; background:none; border:none; color:var(--text); padding: 10px 8px; border-radius:8px; cursor:pointer; font-weight:600; }
+    .user-panel .menu a:hover, .user-panel .menu button:hover { background: rgba(255,255,255,0.02); color: var(--accent); }
+    .user-panel .signout { margin-top:18px; border-radius:12px; padding:12px; background: var(--accent-gradient); color:#fff; font-weight:700; box-shadow: 0 8px 24px rgba(66,133,244,0.12); border:none; cursor:pointer; }
+  </style>
+
+  <script>
+    function toggleUserPanel(){
+      const b = document.getElementById('userPanelBackdrop');
+      const p = document.getElementById('userPanel');
+      const open = p.classList.toggle('open');
+      b.classList.toggle('open', open);
+      p.setAttribute('aria-hidden', !open);
+      // populate panel info
+      const s = getSession() || {};
+      document.getElementById('panelName').textContent = s.name || 'Hi, Guest';
+      document.getElementById('panelEmail').textContent = s.email || '';
+      document.getElementById('panelAvatar').textContent = (s.name||s.email||'G').charAt(0).toUpperCase();
+    }
+    function closeUserPanel(){ const b = document.getElementById('userPanelBackdrop'); const p = document.getElementById('userPanel'); p.classList.remove('open'); b.classList.remove('open'); p.setAttribute('aria-hidden','true'); }
+    function signOut(){ localStorage.removeItem('ocassio_session'); closeUserPanel(); updateUserArea(); }
+    function openProfile(){ window.location.href='profile.html'; }
+    function openOrders(){ alert('Your Orders - not implemented yet'); }
+    function openStream(){ alert('Stream Library - not implemented yet'); }
+    function openHelp(){ alert('Help & Support - not implemented yet'); }
+    function openSettings(){ alert('Accounts & Settings - not implemented yet'); }
+    function openRewards(){ alert('Rewards - not implemented yet'); }
+  </script>
+  <style>
+    #userAreaPlaceholder { margin-left: 10px; }
+    .user-area{ display:flex; align-items:center; gap:0.6rem; cursor:pointer; padding:0.2rem 0.6rem; border-radius:10px; transition:background .12s }
+    .user-area:hover{ background: rgba(255,255,255,0.03) }
+    .user-avatar{ width:34px; height:34px; border-radius:50%; background: linear-gradient(135deg,#2b2b2f,#0f1113); display:inline-flex; align-items:center; justify-content:center; color:#fff; font-weight:700; box-shadow: 0 4px 18px rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.06) }
+    .user-greet{ color:var(--text); font-weight:600; font-size:0.98rem }
+  </style>
+  <div class="main-content-wrap">
+    <div class="tabs">
+      <button class="tab active">E-GIFT CARDS</button>
+      <button class="tab">PHYSICAL GIFT CARDS</button>
+    </div>
+    <h2 style="text-align:center; font-size:2rem; font-weight:800; margin-bottom:1.5rem; color:var(--text);">Pick a card from one of our themes</h2>
+    <div class="filter-bar">
+      <button class="filter-btn active">All</button>
+      <button class="filter-btn">Generic</button>
+      <button class="filter-btn">Friendship Day</button>
+      <button class="filter-btn">Character Oriented</button>
+      <button class="filter-btn">Birthday</button>
+      <button class="filter-btn">Anniversary</button>
+    </div>
+    <div class="gift-grid">
+      <div class="gift-card">
+        <img class="gift-img" src="{% static 'giftcards/nim.png' %}" alt="Gift Card 1" />
+        <div class="gift-info">
+          <div class="gift-title">Nim's Celebration</div>
+          <div class="gift-desc">A perfect card for a special friend or occasion.</div>
+        </div>
+      </div>
+      <div class="gift-card">
+        <img class="gift-img" src="{% static 'giftcards/nim2.png' %}" alt="Gift Card 2" />
+        <div class="gift-info">
+          <div class="gift-title">Cheers to You!</div>
+          <div class="gift-desc">Send your best wishes with this vibrant card.</div>
+        </div>
+      </div>
+      <div class="gift-card">
+        <img class="gift-img" src="{% static 'giftcards/nim3.png' %}" alt="Gift Card 3" />
+        <div class="gift-info">
+          <div class="gift-title">Fun Times</div>
+          <div class="gift-desc">Celebrate fun and friendship with this card.</div>
+        </div>
+      </div>
+      <div class="gift-card">
+        <img class="gift-img" src="{% static 'giftcards/nim4.png' %}" alt="Gift Card 4" />
+        <div class="gift-info">
+          <div class="gift-title">Special Moments</div>
+          <div class="gift-desc">Mark a memorable day with a thoughtful gift.</div>
+        </div>
+      </div>
+      <div class="gift-card">
+        <img class="gift-img" src="{% static 'giftcards/prathu.png' %}" alt="Gift Card 5" />
+        <div class="gift-info">
+          <div class="gift-title">Prathu's Pick</div>
+          <div class="gift-desc">A card for someone who makes life brighter.</div>
+        </div>
+      </div>
+      <div class="gift-card">
+        <img class="gift-img" src="{% static 'giftcards/priya.png' %}" alt="Gift Card 6" />
+        <div class="gift-info">
+          <div class="gift-title">Priya's Smile</div>
+          <div class="gift-desc">Share happiness and smiles with this card.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-links">
+        <a href="#">About Us</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+        <a href="#">FAQ</a>
+        <a href="#">Contact</a>
+        <a href="#">Careers</a>
+        <a href="#">Press</a>
+      </div>
+      <p>Available in 50+ cities across India. Experience the future of movie booking.</p>
+      <p style="margin-top: 1rem; font-size: 0.8rem; opacity: 0.5;">
+        © 2024 Ocassio. All rights reserved. Prices and availability subject to change.
+      </p>
+      <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.75; display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap;">
+        Designed by <strong>Krish Koli</strong> •
+        <a href="https://instagram.com/krishkoli021" target="_blank" style="color: #4285f4; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+          <img src="https://img.icons8.com/ios-filled/50/ffffff/instagram-new.png" alt="Instagram" style="width: 16px; height: 16px;">
+          @krishkoli021
+        </a>
+      </p>
+      <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.75; display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap;">
+        Developed by <strong>Pratham Mendon</strong> •
+        <a href="https://instagram.com/prathammendon12" target="_blank" style="color: #4285f4; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+          <img src="https://img.icons8.com/ios-filled/50/ffffff/instagram-new.png" alt="Instagram" style="width: 16px; height: 16px;">
+          @prathammendon12
+        </a>
+      </p>
+    </div>
+  </footer>
+</body>
+</html>
