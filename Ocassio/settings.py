@@ -23,8 +23,8 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 SECRET_KEY = 'django-insecure-&^2&c@dde(_0tvz==)+kw&al12^e#plcbjc5cc$-!v@p8*uiys'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
-ALLOWED_HOSTS = ['*']
+DEBUG = "False"
+ALLOWED_HOSTS = ['ocassio.onrender.com']
 
 # Allow React to access Django APIs
 CORS_ALLOWED_ORIGINS = [
@@ -106,13 +106,27 @@ WSGI_APPLICATION = 'Ocassio.wsgi.application'
 
 import dj_database_url
 
-DATABASES = {
-    'default': dj_database_url.config(
-        default='postgresql://eventuser:strongpassword@localhost:5432/eventplanner_db',
-        conn_max_age=600,
-        ssl_require=True
-    )
-}
+if os.environ.get("DATABASE_URL"):
+    # Use Render's database when deployed
+    DATABASES = {
+        'default': dj_database_url.config(
+            default='postgresql://eventuser:strongpassword@localhost:5432/eventplanner_db',
+            conn_max_age=600,
+            ssl_require=True
+        )
+    }
+else:
+    # Use local Postgres when running locally
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'eventplanner_db',
+            'USER': 'eventuser',
+            'PASSWORD': 'strongpassword',
+            'HOST': 'localhost',
+            'PORT': '5432',
+        }
+    }
 
 
 # Password validation
