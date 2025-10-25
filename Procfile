@@ -1,1 +1,1 @@
-web: gunicorn Ocassio.wsgi
+web: gunicorn Ocassio.wsgi:application
