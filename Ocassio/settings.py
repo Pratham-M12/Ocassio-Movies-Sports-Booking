@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -23,7 +23,7 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 SECRET_KEY = 'django-insecure-&^2&c@dde(_0tvz==)+kw&al12^e#plcbjc5cc$-!v@p8*uiys'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 ALLOWED_HOSTS = ['*']
 
 # Allow React to access Django APIs
@@ -104,16 +104,16 @@ WSGI_APPLICATION = 'Ocassio.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+import dj_database_url
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'eventplanner_db', #Database Name
-        'USER': 'eventuser', #Database User
-        'PASSWORD': 'strongpassword', #Database Password
-        'HOST': 'localhost', #Database Host
-        'PORT': '5432', #Database Port
-    }
+    'default': dj_database_url.config(
+        default='postgresql://eventuser:strongpassword@localhost:5432/eventplanner_db',
+        conn_max_age=600,
+        ssl_require=True
+    )
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
