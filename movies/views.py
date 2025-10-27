@@ -1,10 +1,13 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import Movie, Showtime, Theatre, Seat, Ticket
 import json
 import random
 from django.contrib.auth.decorators import login_required
+import os, uuid, qrcode
+from django.contrib import messages
+from django.conf import settings
 
 def movies_view(request):
     """Render the main landing page for movies"""
@@ -89,8 +92,12 @@ def ticket_template(request):
     seats = request.GET.get('seats', '')
     total = request.GET.get('total', '0')
     payment_method = request.GET.get('payment', 'N/A')
-    qr_image = request.GET.get('qr', '')
+    qr_filename = request.GET.get('qr_filename', '')
     screen_no = random.randint(1, 5)
+
+    qr_image_url = None
+    if qr_filename:
+        qr_image_url = os.path.join(settings.MEDIA_URL, "qrcodes", qr_filename)
 
     context = {
         "movie": {"title": movie_title},
@@ -100,10 +107,11 @@ def ticket_template(request):
         "seats": seats,
         "total": total,
         "payment_method": payment_method,
-        "qr_image": qr_image,
-        "screen_no" : screen_no
+        "qr_image": qr_image_url,
+        "screen_no": screen_no,
     }
     return render(request, "movies/ticket_template.html", context)
+
 
 @csrf_exempt
 def save_ticket(request):
@@ -138,27 +146,58 @@ def get_seats(request, showtime_id):
     ]
     return JsonResponse({'seats': data})
 
-@csrf_exempt  # optional for testing; use CSRF token in production
+@csrf_exempt
+@login_required
 def confirm_booking(request):
     """
-    Marks the selected seats as booked once payment is completed.
+    Marks the selected seats as booked once payment is completed and generates a QR code ticket.
     Expects POST data:
       - showtime_id
       - seats[] (list of seat codes like ['A1','A2'])
+      - total
+      - payment_method
     """
+    
     if request.method == 'POST':
-        showtime_id = request.POST.get('showtime_id')
-        seats = request.POST.getlist('seats[]', [])
-
         try:
-            showtime = Showtime.objects.get(id=showtime_id)
+            showtime_id = request.POST.get('showtime_id')
+            seats = request.POST.getlist('seats[]', [])
+            total = request.POST.get('total', '0')
+            payment_method = request.POST.get('payment_method', 'N/A')
+
+            showtime = get_object_or_404(Showtime, id=showtime_id)
+            movie = showtime.movie
+            theatre = showtime.theatre
+
+            # ✅ Mark seats as booked
             for seat_code in seats:
                 row = seat_code[0]
                 number = int(seat_code[1:])
                 seat = showtime.seats.get(row=row, number=number)
                 seat.is_booked = True
                 seat.save()
-            return JsonResponse({'status': 'success', 'message': 'Seats booked successfully!'})
+
+            # ✅ Generate a QR code (unique to this booking)
+            qr_data = f"{request.user.username}-{uuid.uuid4()}-{movie.title}-{theatre.name}-{','.join(seats)}"
+            qr = qrcode.make(qr_data)
+            qr_dir = os.path.join(settings.MEDIA_ROOT, "qrcodes")
+            os.makedirs(qr_dir, exist_ok=True)
+            filename = f"{uuid.uuid4()}.png"
+            qr_path = os.path.join(qr_dir, filename)
+            qr.save(qr_path)
+
+            # ✅ Redirect to ticket page with safe, short query params
+            return redirect(
+                f"/movies/ticket_template/?movie={movie.title}"
+                f"&theatre={theatre.name}"
+                f"&date={showtime.date}"
+                f"&time={showtime.time}"
+                f"&seats={','.join(seats)}"
+                f"&total={total}"
+                f"&payment={payment_method}"
+                f"&qr_filename={filename}"
+            )
+
         except Showtime.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'Invalid showtime.'}, status=404)
         except Exception as e:

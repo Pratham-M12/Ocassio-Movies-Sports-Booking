@@ -103,7 +103,10 @@
     const totalPrice = sessionStorage.getItem("confirmedTotal") || "0";
     const selectedMethod = sessionStorage.getItem("confirmedMethod") || "Card";
     
-    const qrImg = sessionStorage.getItem("qrImage") || "{% static 'movies/qr-placeholder.png' %}";
+    let qrImg = "{{ qr_image|default:'' }}";
+    if (!qrImg) {
+      qrImg = sessionStorage.getItem("qrImage") || "{% static 'movies/qr-placeholder.png' %}";
+    }
     document.getElementById("qrCodeImg").src = qrImg;
 
     // Fill data
@@ -113,7 +116,7 @@
     document.getElementById("paymentMethod").textContent = selectedMethod;
     document.getElementById('moviePoster').src = moviePoster || "{% static 'movies/default_poster.jpg' %}";
     document.getElementById("movieTitle").textContent = confirmedMovie || "{{ movie.title }}";
-    document.getElementById("movieMeta").textContent = `${confirmedTheatre || ''} \n ${confirmedShowtime || ''}`;
+    document.getElementById("movieMeta").textContent = (confirmedTheatre || "{{ theatre_name }}") + "\n" + (confirmedShowtime || "{{ showtime_date }} | {{ showtime_time }}");
   
     document.getElementById('downloadTicket').addEventListener('click', async () => {
       const el = document.querySelector('.ticket');
