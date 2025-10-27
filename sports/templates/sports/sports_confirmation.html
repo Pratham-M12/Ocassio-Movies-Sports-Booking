@@ -51,18 +51,51 @@ body{background:var(--bg-dark);color:var(--text);font-family:'Inter',sans-serif;
 .main-content-wrap { padding: 0 0.5rem; }
 .movie-poster { width: 50px; height: 70px; }
 }
+.success-icon {text-align: center; animation: popIn 0.6s ease;}
+@keyframes popIn {
+  0% { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+#qrWrapper canvas {animation: qrPulse 2.5s ease-in-out infinite;}
+@keyframes qrPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 rgba(255,255,255,0); }
+  50% { transform: scale(1.02); box-shadow: 0 0 12px rgba(255,255,255,0.08); }
+}
+.ticket-actions button:hover {transform: translateY(-2px); box-shadow: 0 6px 20px rgba(66,133,244,0.25); transition: all 0.2s ease;}
+hr.receipt-divider {width: 70%; margin: 2rem auto; border: 0; border-top: 2px dashed rgba(255,255,255,0.15);}
 h2{font-weight:800;margin-bottom:1rem;}
 .payment-methods button{display:block;width:100%;text-align:left;padding:0.8rem 1rem;margin-bottom:0.7rem;border-radius:12px;border:2px solid #333;background:transparent;color:#fff;cursor:pointer;font-weight:600;transition:all 0.2s;}
 .payment-methods button.active{border-color:var(--accent);background:var(--accent-gradient);}
 .pay-btn{background:var(--accent-gradient);color:#fff;font-weight:700;border:none;border-radius:12px;padding:0.8rem 2rem;cursor:pointer;box-shadow:0 2px 16px #4285f433;margin-top:1rem;width:100%;font-size:1.1rem;}
 .pay-btn:disabled{background:#23232a;color:#888;cursor:not-allowed;}
-.ticket-summary table{width:100%;border-collapse:collapse;margin-bottom:1rem;}
-.ticket-summary th, .ticket-summary td{padding:0.5rem;text-align:left;font-weight:600;}
-.confirmation{text-align:center;}
+.ticket-summary table{background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 1.2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.25); width:100%; border-collapse:collapse; margin-bottom:1rem;}
+.ticket-summary th{text-align: left; color: #9ca3af; padding: 0.4rem 1rem 0.4rem 0; font-weight: 500;}, 
+.ticket-summary td{padding:0.5rem;text-align:left;font-weight:600;}
+@media (max-width: 600px) {
+  .ticket-summary table {width: 100%; font-size: 0.9rem;}
+  .ticket-actions {display: flex; flex-direction: column; align-items: center;}
+  .ticket-actions button {margin: 0.4rem 0; width: 80%;}
+}
+.confirmation::before {content: ''; display: block; height: 5px; border-radius: 5px 5px 0 0; background: linear-gradient(90deg, #4285f4, #34a853); margin-bottom: 1.2rem;}
+.event-info {background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 1rem 1.5rem; margin: 1.2rem auto 1.5rem auto; max-width: 420px; box-shadow: 0 2px 12px rgba(0,0,0,0.25);}
+.event-badge {display: inline-block; background: var(--accent-gradient); color: #fff; font-size: 0.85rem; font-weight: 600; padding: 0.25rem 0.7rem; border-radius: 8px; margin-top: 0.6rem; box-shadow: 0 2px 8px rgba(66,133,244,0.25);}
+.event-info h3 { margin: 0; font-size: 1.4rem; color: #fff; }
+.event-info p { margin: 0.2rem 0; color: #aaa; font-size: 0.95rem; }
+.confirmation{text-align:center; animation: fadeInUp 0.7s ease;}
+@keyframes fadeInUp {
+  0% { transform: translateY(25px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
 .confirmation h2{color:#34a853;}
+.confirmation h2 {color: transparent; background: linear-gradient(90deg, #34a853, #4285f4, #34a853); background-size: 300% auto; -webkit-background-clip: text; background-clip: text; animation: gradientMove 3s linear infinite;}
+@keyframes gradientMove {
+  0% { background-position: 0% center; }
+  100% { background-position: 100% center; }
+}
 footer{width:100vw;background:#181818;color:#b0b0b8;text-align:center;padding:2.5rem 1rem 1.5rem 1rem;border-top:1px solid #23232a;}
 </style>
 </head>
+
 <body>
 <nav class="navbar">
   <div class="logo">Ocassio</div>
@@ -102,19 +135,42 @@ footer{width:100vw;background:#181818;color:#b0b0b8;text-align:center;padding:2.
       <span class="progress-step"><span class="progress-dot"></span>2. Payment</span>
       <span class="progress-step active"><span class="progress-dot"></span>3. Confirmation</span>
     </div>
+    <div class="event-info" style="text-align:center; margin-top:1.2rem;">
+      <h3 id="eventTitle" style="font-size:1.3rem; font-weight:700; margin-bottom:0.3rem;"></h3>
+      <p id="eventVenue" style="color:#b0b0b8; margin:0.2rem 0;"></p>
+      <p id="eventDate" style="color:#9ca3af; font-size:0.95rem; margin:0;"></p>
+      <span id="eventCategory" class="event-badge"></span>
+    </div>
     <div class="section confirmation">
         <h2>Payment Successful!</h2>
+        <div class="success-icon">
+          <svg viewBox="0 0 24 24" fill="none" width="64" height="64">
+            <circle cx="12" cy="12" r="10" stroke="#34a853" stroke-width="3" fill="none"/>
+            <path d="M8 12.5l3 3 5-6" stroke="#34a853" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
         <div class="ticket-summary">
           <table>
+            <tr><th>Match</th><td id="summaryMatch"></td></tr>
+            <tr><th>Venue</th><td id="summaryVenue"></td></tr>
+            <tr><th>Date</th><td id="summaryDate"></td></tr>
             <tr><th>Stand</th><td id="summaryStand"></td></tr>
             <tr><th>Ring</th><td id="summaryRing"></td></tr>
+            <tr><th>Seat No(s)</th><td id="summarySeats"></td></tr>
+            <tr><th>Entry Gate</th><td id="summaryGate"></td></tr>
             <tr><th>Tickets</th><td id="summaryTickets"></td></tr>
+            <tr><th>Base Ticket Price</th><td id="summaryBase"></td></tr>
+            <tr><th>Convenience Fee</th><td id="summaryFee"></td></tr>
+            <tr><th>Discount Applied</th><td id="summaryDiscount"></td></tr>
             <tr><th>Total Paid</th><td id="summaryTotal"></td></tr>
             <tr><th>Payment Method</th><td id="summaryMethod"></td></tr>
             <tr><th>Booking ID</th><td id="summaryRef"></td></tr>
+            <tr><th>Booking Time</th><td id="summaryTime"></td></tr>
+            <tr><th>Booked By</th><td>{{ request.user.first_name|default:request.user.username }}</td></tr>
+            <tr><th>Email</th><td>{{ request.user.email }}</td></tr>
           </table>
         </div>
-  <hr style="margin:1.8rem auto; width:60%; border:0; border-top:1px solid #333;">
+        <hr class="receipt-divider" style="margin:1.8rem auto; width:60%; border:0; border-top:1px solid #333;">
         <div id="qrWrapper" style="margin:1.5rem 0; text-align:center;">
           <canvas id="qrCodeImg" width="120" height="120" style="background:#fff; border-radius:10px; padding:6px;"></canvas>
           <p style="color:#b0b0b8; font-size:0.9rem;">Your ticket QR code</p>
@@ -123,6 +179,10 @@ footer{width:100vw;background:#181818;color:#b0b0b8;text-align:center;padding:2.
             <button id="printTicketBtn" style="margin-right:1rem;padding:0.6rem 1.2rem;border:none;border-radius:8px;background:var(--accent);color:#fff;cursor:pointer;">Print Ticket</button>
             <button id="downloadReceiptBtn" style="padding:0.6rem 1.2rem;border:none;border-radius:8px;background:var(--accent-green);color:#fff;cursor:pointer;">Download Receipt</button>  
         </div>
+        <p style="margin-top:1rem; font-size:0.9rem; color:#aaa;">
+          Need help? Contact <a href="mailto:support@ocassio.in" style="color:#4285f4;">support@ocassio.in</a><br>
+          Cancellations allowed up to <b>20 minutes</b> before start time.
+        </p>
     </div>
 </div>
 <footer class="footer">
@@ -270,6 +330,10 @@ footer{width:100vw;background:#181818;color:#b0b0b8;text-align:center;padding:2.
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+<script>
+window.addEventListener('DOMContentLoaded', () => {confetti({particleCount: 100, spread: 70, origin: { y: 0.6 },});});
+</script>
 <script>
 const confirmedBay = JSON.parse(sessionStorage.getItem('confirmedBay') || '{}');
 const totalPrice = parseInt(sessionStorage.getItem('confirmedTotal') || '0');
@@ -280,6 +344,7 @@ const ticketCount = parseInt(sessionStorage.getItem('ticketCount') || '0');
 const matchVenue = sessionStorage.getItem('confirmedVenue') || '';
 const matchDate = sessionStorage.getItem('confirmedDate') || '';
 const bookingRef = 'OC' + Math.random().toString(36).substring(2, 8).toUpperCase();
+
 
 console.log({confirmedBay, totalPrice, selectedMethod, matchTitle, ticketCount});
 
@@ -295,6 +360,15 @@ document.getElementById('summaryMethod').textContent = selectedMethod;
 document.getElementById('summaryRef').textContent = bookingRef;
 sessionStorage.setItem('bookingRef', bookingRef);
 
+// --- Fill event-info block ---
+document.getElementById('eventTitle').textContent = matchTitle || "Match TBD";
+document.getElementById('eventVenue').textContent = matchVenue || "Venue TBA";
+const dateFormatted = matchDate ? new Date(matchDate).toLocaleString('en-IN', {
+    day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+}) : '';
+document.getElementById('eventDate').textContent = dateFormatted;
+const matchCategory = sessionStorage.getItem('confirmedCategory') || "Cricket • Woman's ODI World Cup";
+document.getElementById('eventCategory').textContent = matchCategory;
 
 // --- Generate QR code ---
 const qrCanvas = document.getElementById("qrCodeImg");

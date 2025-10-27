@@ -168,7 +168,7 @@
       <img class="movie-poster" src="{% if match.image %}{% static match.image %}{% else %}{% static 'sports/default_match.jpg' %}{% endif %}" alt="{{ match.title }}"/>
       <div class="movie-details">
         <div class="movie-title">{{ match.title }}</div>
-        <div class="movie-meta">📍 {{ match.venue }}<br>{{ match.date }} | {{ match.category }}</div>
+        <div class="movie-meta">📍🏟️ {{ match.venue }}<br>{{ match.date }} | {{ match.category }}</div>
       </div>
     </div>
     <div class="progress-bar">
@@ -198,7 +198,7 @@
     <!-- Match info -->
     <div><strong>{{ match.title }}</strong></div>
     <div style="color:var(--muted);font-size:13px;margin-top:6px;">
-      📍 {{ match.venue }} <br> 🗓️ {{ match.date }} • {{ match.category }}
+      📍🏟️ {{ match.venue }} <br> 🗓️ {{ match.date }} • {{ match.category }}
     </div>
     <hr style="border:none;border-top:1px solid rgba(255,255,255,0.1);margin:10px 0;">
 
