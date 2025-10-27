@@ -97,6 +97,7 @@
   <!-- scripts for download to PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
   <script>
   document.addEventListener("DOMContentLoaded", () => {
     const confirmedMatch = sessionStorage.getItem("confirmedMatch") || "Unknown Match";
@@ -107,8 +108,21 @@
     const totalPrice = sessionStorage.getItem("confirmedTotal") || "0";
     const selectedMethod = sessionStorage.getItem("confirmedMethod") || "Card";
     const ticketCount = sessionStorage.getItem("ticketCount") || "1";
-    const qrData = sessionStorage.getItem('qrImage');
-    if (qrData) document.getElementById('qrCodeImg').src = qrData;
+    // Generate QR code directly here instead of reading from sessionStorage
+    const qrCanvas = document.createElement('canvas');
+    const qr = new QRious({
+      element: qrCanvas,
+      size: 120,
+      value: JSON.stringify({
+        match: confirmedMatch,
+        stand: confirmedBay.standName || confirmedBay.stand,
+        ring: confirmedBay.ring,
+        tickets: ticketCount,
+        total: totalPrice
+      })
+    });
+    document.getElementById('qrCodeImg').src = qr.toDataURL();
+
     // Generate seat numbers dynamically based on number of tickets
     let seatNumbers = [];
     if (confirmedBay && confirmedBay.standName) {
