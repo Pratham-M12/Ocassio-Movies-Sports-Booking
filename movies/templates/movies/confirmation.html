@@ -284,7 +284,7 @@ if (qrCanvas) {
   const printBtn = document.getElementById('printTicketBtn');
   if (printBtn) {
     printBtn.addEventListener('click', () => {
-      const url = `/movies/ticket_template/?movie=${encodeURIComponent(movieTitle)}&theatre=${encodeURIComponent(theatreName)}&date_time=${encodeURIComponent(showtimeInfo)}&seats=${encodeURIComponent(seatLabels.join(', '))}&total=${totalPrice}&payment=${selectedMethod}&qr=${encodeURIComponent(qrImg)}`;
+      const url = `/movies/ticket_template/?movie=${encodeURIComponent(movieTitle)}&theatre=${encodeURIComponent(theatreName)}&date_time=${encodeURIComponent(showtimeInfo)}&seats=${encodeURIComponent(seatLabels.join(', '))}&total=${totalPrice}&payment=${selectedMethod}`;
       const win = window.open(url, '_blank');
       const checkLoad = setInterval(() => {
         if (win.document.readyState === 'complete') {
@@ -303,7 +303,7 @@ if (qrCanvas) {
       downloadBtn.innerHTML = 'Generating... <span class="loader"></span>';
       downloadBtn.disabled = true;
       try {
-        const url = `/movies/ticket_template/?movie=${encodeURIComponent(movieTitle)}&theatre=${encodeURIComponent(theatreName)}&date_time=${encodeURIComponent(showtimeInfo)}&seats=${encodeURIComponent(seatLabels.join(', '))}&total=${totalPrice}&payment=${selectedMethod}&qr=${encodeURIComponent(qrImg)}`;
+        const url = `/movies/ticket_template/?movie=${encodeURIComponent(movieTitle)}&theatre=${encodeURIComponent(theatreName)}&date_time=${encodeURIComponent(showtimeInfo)}&seats=${encodeURIComponent(seatLabels.join(', '))}&total=${totalPrice}&payment=${selectedMethod}`;
         const response = await fetch(url);
         const html = await response.text();
         const { jsPDF } = window.jspdf;
