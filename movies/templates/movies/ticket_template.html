@@ -74,7 +74,7 @@
       <p id="seatList">Seats: Loading...}</p>
     </div>
     <div class="qr">
-      <img id="qrCodeImg" src="" alt="QR Code" />
+      <img id="qrCodeImg" src="{{ qr_image }}" alt="QR Code" />
     </div>
     <div class="cancel-info">
       Cancellation Unavailable: <span>Cut-off time of 20 minutes before the showtime has passed.</span>
@@ -104,9 +104,6 @@
     const selectedMethod = sessionStorage.getItem("confirmedMethod") || "Card";
     
     let qrImg = "{{ qr_image|default:'' }}";
-    if (!qrImg) {
-      qrImg = sessionStorage.getItem("qrImage") || "{% static 'movies/qr-placeholder.png' %}";
-    }
     document.getElementById("qrCodeImg").src = qrImg;
 
     // Fill data

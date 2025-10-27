@@ -92,13 +92,16 @@ def ticket_template(request):
     seats = request.GET.get('seats', '')
     total = request.GET.get('total', '0')
     payment_method = request.GET.get('payment', 'N/A')
-    qr_filename = request.GET.get('qr_filename', '')
+
+    qr_data = f"{movie_title} | {theatre_name} | {showtime_date} | {showtime_time} | Seats: {seats} | Total: ₹{total}"
+    qr = qrcode.make(qr_data)
+    qr_filename = f"qr_{uuid.uuid4().hex}.png"
+    qr_path = os.path.join(settings.MEDIA_ROOT, 'qr', qr_filename)
+    os.makedirs(os.path.dirname(qr_path), exist_ok=True)
+    qr.save(qr_path)
+    qr_url = settings.MEDIA_URL + f'qr/{qr_filename}'
+
     screen_no = random.randint(1, 5)
-
-    qr_image_url = None
-    if qr_filename:
-        qr_image_url = os.path.join(settings.MEDIA_URL, "qrcodes", qr_filename)
-
     context = {
         "movie": {"title": movie_title},
         "theatre_name": theatre_name,
@@ -107,7 +110,7 @@ def ticket_template(request):
         "seats": seats,
         "total": total,
         "payment_method": payment_method,
-        "qr_image": qr_image_url,
+        "qr_image": qr_url,
         "screen_no": screen_no,
     }
     return render(request, "movies/ticket_template.html", context)
