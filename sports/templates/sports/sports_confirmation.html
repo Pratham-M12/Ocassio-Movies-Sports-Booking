@@ -335,71 +335,64 @@ footer{width:100vw;background:#181818;color:#b0b0b8;text-align:center;padding:2.
 window.addEventListener('DOMContentLoaded', () => {confetti({particleCount: 100, spread: 70, origin: { y: 0.6 },});});
 </script>
 <script>
-const confirmedBay = JSON.parse(sessionStorage.getItem('confirmedBay') || '{}');
-const totalPrice = parseInt(sessionStorage.getItem('confirmedTotal') || '0');
-const selectedMethod = sessionStorage.getItem('confirmedMethod') || '';
-const matchTitle = sessionStorage.getItem('confirmedMatch') || '';
-const matchPoster = sessionStorage.getItem('confirmedPoster') || '';
-const ticketCount = parseInt(sessionStorage.getItem('ticketCount') || '0');
-const matchVenue = sessionStorage.getItem('confirmedVenue') || '';
-const matchDate = sessionStorage.getItem('confirmedDate') || '';
-const bookingRef = 'OC' + Math.random().toString(36).substring(2, 8).toUpperCase();
-const seatNos = JSON.parse(sessionStorage.getItem('confirmedSeats') || '[]').join(', ') || 'N/A';
-const entryGate = sessionStorage.getItem('confirmedGate') || 'Gate 1';
-const basePrice = sessionStorage.getItem('confirmedBasePrice') || '0';
-const convenience = sessionStorage.getItem('confirmedConvenience') || '0';
-const discount = sessionStorage.getItem('confirmedDiscount') || '0';
-const bookingTime = new Date(sessionStorage.getItem('confirmedBookingTime')).toLocaleString();
+document.addEventListener("DOMContentLoaded", () => {
+  const confirmedBay = JSON.parse(sessionStorage.getItem('confirmedBay') || '{}');
+  const matchTitle = sessionStorage.getItem('confirmedMatch') || '';
+  const matchPoster = sessionStorage.getItem('confirmedPoster') || '';
+  const matchVenue = sessionStorage.getItem('confirmedVenue') || '';
+  const matchDate = sessionStorage.getItem('confirmedDate') || '';
+  const totalPrice = sessionStorage.getItem('confirmedTotal') || '0';
+  const selectedMethod = sessionStorage.getItem('confirmedMethod') || '';
+  const ticketCount = sessionStorage.getItem('ticketCount') || '0';
 
-document.getElementById('summarySeats').textContent = seatNos;
-document.getElementById('summaryGate').textContent = entryGate;
-document.getElementById('summaryBase').textContent = `₹${basePrice}`;
-document.getElementById('summaryConvenience').textContent = `₹${convenience}`;
-document.getElementById('summaryDiscount').textContent = `₹${discount}`;
-document.getElementById('summaryTime').textContent = bookingTime;
+  // Extra fields
+  const basePrice = sessionStorage.getItem('basePrice') || '0';
+  const fee = sessionStorage.getItem('fee') || '35';
+  const discount = sessionStorage.getItem('discount') || '0';
+  const gate = sessionStorage.getItem('entryGate') || 'Gate ' + (Math.floor(Math.random()*5)+1);
+  const seatNumbers = sessionStorage.getItem('seatNumbers') || 'Auto Assigned';
+  const bookingTime = new Date().toLocaleString();
 
-console.log({confirmedBay, totalPrice, selectedMethod, matchTitle, ticketCount});
+  const bookingRef = 'OC' + Math.random().toString(36).substring(2, 8).toUpperCase();
+  sessionStorage.setItem('bookingRef', bookingRef);
 
-// --- Fill match info ---
-document.getElementById('matchTitle').textContent = matchTitle || "Unknown Match";
-document.getElementById('matchPoster').src = matchPoster || "{% static 'sports/default_match.jpg' %}";
-document.getElementById('matchMeta').innerHTML = `${matchVenue}<br>${new Date(matchDate).toDateString()}`;
-document.getElementById('summaryStand').textContent = confirmedBay.standName || confirmedBay.stand;
-document.getElementById('summaryRing').textContent = confirmedBay.ring;
-document.getElementById('summaryTickets').textContent = ticketCount;
-document.getElementById('summaryTotal').textContent = `₹${totalPrice}`;
-document.getElementById('summaryMethod').textContent = selectedMethod;
-document.getElementById('summaryRef').textContent = bookingRef;
-sessionStorage.setItem('bookingRef', bookingRef);
+  // Fill event info section
+  document.getElementById('eventTitle').textContent = matchTitle;
+  document.getElementById('eventVenue').textContent = matchVenue;
+  document.getElementById('eventDate').textContent = new Date(matchDate).toLocaleString();
+  document.getElementById('eventCategory').textContent = "Cricket Match";
 
-// --- Fill event-info block ---
-document.getElementById('eventTitle').textContent = matchTitle || "Match TBD";
-document.getElementById('eventVenue').textContent = matchVenue || "Venue TBA";
-const dateFormatted = matchDate ? new Date(matchDate).toLocaleString('en-IN', {
-    day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
-}) : '';
-document.getElementById('eventDate').textContent = dateFormatted;
-const matchCategory = sessionStorage.getItem('confirmedCategory') || "Cricket • Woman's ODI World Cup";
-document.getElementById('eventCategory').textContent = matchCategory;
+  // Fill summary table
+  document.getElementById('summaryMatch').textContent = matchTitle;
+  document.getElementById('summaryVenue').textContent = matchVenue;
+  document.getElementById('summaryDate').textContent = new Date(matchDate).toLocaleString();
+  document.getElementById('summaryStand').textContent = confirmedBay.standName || confirmedBay.stand || '-';
+  document.getElementById('summaryRing').textContent = confirmedBay.ring || '-';
+  document.getElementById('summarySeats').textContent = seatNumbers;
+  document.getElementById('summaryGate').textContent = gate;
+  document.getElementById('summaryTickets').textContent = ticketCount;
+  document.getElementById('summaryBase').textContent = `₹${basePrice}`;
+  document.getElementById('summaryFee').textContent = `₹${fee}`;
+  document.getElementById('summaryDiscount').textContent = `₹${discount}`;
+  document.getElementById('summaryTotal').textContent = `₹${totalPrice}`;
+  document.getElementById('summaryMethod').textContent = selectedMethod;
+  document.getElementById('summaryRef').textContent = bookingRef;
+  document.getElementById('summaryTime').textContent = bookingTime;
 
-// --- Generate QR code ---
-const qrCanvas = document.getElementById("qrCodeImg");
-let qrImg = "";
-if (qrCanvas) {
-  const qr = new QRious({
+  // Generate QR code
+  const qrCanvas = document.getElementById("qrCodeImg");
+  new QRious({
     element: qrCanvas,
     size: 120,
     value: JSON.stringify({
       match: matchTitle,
-      stand: confirmedBay.standName || confirmedBay.stand,
-      ring: confirmedBay.ring,
+      stand: confirmedBay.stand,
       tickets: ticketCount,
-      total: totalPrice
+      total: totalPrice,
+      ref: bookingRef
     })
   });
-  qrImg = qr.toDataURL();
-  sessionStorage.setItem('sportsQR', qrImg);
-}
+});
 
 // --- Print Ticket ---
 document.getElementById('printTicketBtn').addEventListener('click', () => {
