@@ -344,7 +344,19 @@ const ticketCount = parseInt(sessionStorage.getItem('ticketCount') || '0');
 const matchVenue = sessionStorage.getItem('confirmedVenue') || '';
 const matchDate = sessionStorage.getItem('confirmedDate') || '';
 const bookingRef = 'OC' + Math.random().toString(36).substring(2, 8).toUpperCase();
+const seatNos = JSON.parse(sessionStorage.getItem('confirmedSeats') || '[]').join(', ') || 'N/A';
+const entryGate = sessionStorage.getItem('confirmedGate') || 'Gate 1';
+const basePrice = sessionStorage.getItem('confirmedBasePrice') || '0';
+const convenience = sessionStorage.getItem('confirmedConvenience') || '0';
+const discount = sessionStorage.getItem('confirmedDiscount') || '0';
+const bookingTime = new Date(sessionStorage.getItem('confirmedBookingTime')).toLocaleString();
 
+document.getElementById('summarySeats').textContent = seatNos;
+document.getElementById('summaryGate').textContent = entryGate;
+document.getElementById('summaryBase').textContent = `₹${basePrice}`;
+document.getElementById('summaryConvenience').textContent = `₹${convenience}`;
+document.getElementById('summaryDiscount').textContent = `₹${discount}`;
+document.getElementById('summaryTime').textContent = bookingTime;
 
 console.log({confirmedBay, totalPrice, selectedMethod, matchTitle, ticketCount});
 

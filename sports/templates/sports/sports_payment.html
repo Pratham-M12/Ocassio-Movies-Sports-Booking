@@ -372,6 +372,12 @@ payBtn.onclick = async () => {
       sessionStorage.setItem('ticketCount', sessionStorage.getItem('ticketCount') || seatCount || 1);
       sessionStorage.removeItem('selectedBay');
       sessionStorage.removeItem('totalPrice');
+      sessionStorage.setItem('confirmedSeats', JSON.stringify(selectedSeats || []));
+      sessionStorage.setItem('confirmedGate', selectedBay.entryGate || 'Gate 1');
+      sessionStorage.setItem('confirmedBasePrice', basePrice || 0);
+      sessionStorage.setItem('confirmedConvenience', convenienceFee || 0);
+      sessionStorage.setItem('confirmedDiscount', appliedDiscount || 0);
+      sessionStorage.setItem('confirmedBookingTime', new Date().toISOString());
       // Redirect to confirmation
       window.location.href = `/sports/{{ match.slug }}/confirmation/`;
     } else {
