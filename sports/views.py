@@ -24,7 +24,7 @@ def seat_selection_view(request, slug):
             'stands': [],
             'rings_order': [],
         }
-        return render(request, 'sports/seat_selection.html', context)
+        return render(request, 'sports/sports_seat_selection.html', context)
 
     # Group by stand → ring
     stands = {}
