@@ -71,7 +71,7 @@ MIDDLEWARE = [
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',  # keep default
-    'accounts.backends.EmailOrUsernameBackend',             # custom backend
+    'accounts.backends.EmailOrUsernameBackend',   # custom backend
 ]
 
 ROOT_URLCONF = 'Ocassio.urls'
