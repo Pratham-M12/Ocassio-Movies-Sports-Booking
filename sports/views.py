@@ -84,7 +84,6 @@ def sports_confirmation(request, slug):
     """Sports booking confirmation page"""
     return render(request, "sports/sports_confirmation.html")
 
-
 @login_required
 def sports_ticket_template(request):
     """Sports printable ticket view"""

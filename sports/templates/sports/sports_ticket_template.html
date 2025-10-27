@@ -51,7 +51,7 @@
     .footer {text-align: center; padding: 14px; font-size: 12px; color: #999; border-top: 1px solid rgba(255, 255, 255, 0.1); background-color: #1a1a1c;}
     /* --- Shadow Edge for Depth --- */
     .ticket::after {content: ''; position: absolute; width: 100%; height: 8px; background: radial-gradient(circle at 50% 0, #000 0%, transparent 70%); bottom: -8px; left: 0;}
-    #movieMeta {white-space: pre-line;}
+    #matchMeta {white-space: pre-line;}
   </style>
 </head>
 <body>
@@ -107,7 +107,8 @@
     const totalPrice = sessionStorage.getItem("confirmedTotal") || "0";
     const selectedMethod = sessionStorage.getItem("confirmedMethod") || "Card";
     const ticketCount = sessionStorage.getItem("ticketCount") || "1";
-    const qrImg = sessionStorage.getItem("sportsQR") || "{% static 'sports/qr-placeholder.png' %}";
+    const qrData = sessionStorage.getItem('qrImage');
+    if (qrData) document.getElementById('qrCodeImg').src = qrData;
     // Generate seat numbers dynamically based on number of tickets
     let seatNumbers = [];
     if (confirmedBay && confirmedBay.standName) {
@@ -123,12 +124,10 @@
     // Fill data
     document.getElementById("matchTitle").textContent = confirmedMatch;
     document.getElementById("matchPoster").src = confirmedPoster;
-    document.getElementById("matchMeta").textContent =`${confirmedVenue}\n${new Date(confirmedDate).toDateString()}\nStand: ${confirmedBay.standName || confirmedBay.stand}\nRing: ${confirmedBay.ring}`;
-    document.getElementById("matchMeta").textContent = `${confirmedVenue}\n${new Date(confirmedDate).toDateString()}`;
+    document.getElementById("matchMeta").textContent = `${confirmedVenue}\n${new Date(confirmedDate).toDateString()}\nStand: ${confirmedBay.standName || confirmedBay.stand}\nRing: ${confirmedBay.ring}`;
     document.getElementById("standInfo").textContent = `${confirmedBay.standName || confirmedBay.stand || 'Unknown Stand'} — Ring ${confirmedBay.ring || 'N/A'}`;
     document.getElementById("ticketCount").textContent = `Tickets: ${ticketCount}`;
     document.getElementById("ticketCount").insertAdjacentHTML('afterend',`<p>Seat No${seatNumbers.length > 1 ? 's' : ''}: ${seatNumbers.join(', ')}</p>`);
-    document.getElementById("qrCodeImg").src = qrImg;
     document.getElementById("priceBase").textContent = "₹" + totalPrice;
     document.getElementById("totalPrice").textContent = "₹" + totalPrice;
     document.getElementById("paymentMethod").textContent = selectedMethod;

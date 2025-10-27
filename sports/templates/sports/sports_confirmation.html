@@ -317,7 +317,7 @@ if (qrCanvas) {
 
 // --- Print Ticket ---
 document.getElementById('printTicketBtn').addEventListener('click', () => {
-  const url = `/sports/ticket_template/?match=${encodeURIComponent(matchTitle)}&stand=${encodeURIComponent(confirmedBay.standName || confirmedBay.stand)}&ring=${encodeURIComponent(confirmedBay.ring)}&tickets=${ticketCount}&total=${totalPrice}&payment=${selectedMethod}&qr=${encodeURIComponent(qrImg)}`;
+  const url = `/sports/ticket_template/?match=${encodeURIComponent(matchTitle)}&stand=${encodeURIComponent(confirmedBay.standName || confirmedBay.stand)}&ring=${encodeURIComponent(confirmedBay.ring)}&tickets=${ticketCount}&total=${totalPrice}&payment=${selectedMethod}`;
   const win = window.open(url, '_blank');
   const check = setInterval(() => {
     if (win.document.readyState === 'complete') {
