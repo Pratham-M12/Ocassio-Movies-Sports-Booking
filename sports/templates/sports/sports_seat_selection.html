@@ -812,7 +812,7 @@
         };
 
         try {
-          const response = await fetch("{% url 'sports:confirm_booking' %}", {
+          const response = await fetch(window.location.href, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
