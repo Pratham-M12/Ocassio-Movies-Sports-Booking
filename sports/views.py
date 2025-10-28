@@ -2,7 +2,8 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
-from .models import SportsMatch, Bay
+from django.utils.crypto import get_random_string
+from .models import SportsMatch, Bay, Booking
 import json
 
 def sports_view(request):
@@ -130,7 +131,7 @@ def confirm_booking(request):
         if 'booking_data' in request.session:
             del request.session['booking_data']
         request.session.modified = True
-        
+
         return JsonResponse({'status': 'success', 'booking_ref': booking_ref})
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)})
