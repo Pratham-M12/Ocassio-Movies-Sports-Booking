@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.text import slugify
 from django.contrib.auth import get_user_model
 from django.conf import settings
+from django.utils.crypto import get_random_string
 
 User = get_user_model()
 
@@ -38,6 +39,9 @@ class Bay(models.Model):
     def __str__(self):
         return f"{self.match.title} - {self.code}"
     
+def generate_booking_ref():
+    return get_random_string(12).upper()
+
 class Booking(models.Model):
     """Stores confirmed sports bookings"""
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -45,11 +49,12 @@ class Booking(models.Model):
     bay = models.ForeignKey('Bay', on_delete=models.SET_NULL, null=True, blank=True)
     booking_ref = models.CharField(max_length=20, unique=True)
     ticket_count = models.PositiveIntegerField(default=1)
-    total_price = models.DecimalField(max_digits=10, decimal_places=2)
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     payment_method = models.CharField(max_length=50)
     booked_at = models.DateTimeField(auto_now_add=True)
     entry_gate = models.CharField(max_length=50, blank=True, null=True)
     seat_numbers = models.JSONField(default=list, blank=True)
+    booking_ref = models.CharField(max_length=12, unique=True, default=generate_booking_ref, editable=False)
 
     def __str__(self):
         return f"{self.user.username} - {self.match.title} ({self.booking_ref})"
