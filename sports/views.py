@@ -82,7 +82,8 @@ def payment_view(request, slug):
 @login_required
 def sports_confirmation(request, slug):
     """Sports booking confirmation page"""
-    return render(request, "sports/sports_confirmation.html")
+    match = get_object_or_404(SportsMatch, slug=slug)
+    return render(request, "sports/sports_confirmation.html", {'match': match})
 
 @login_required
 def sports_ticket_template(request):

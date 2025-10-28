@@ -339,23 +339,29 @@ document.addEventListener("DOMContentLoaded", () => {
   const posterPath = "{% if match.image %}{% static match.image %}{% else %}{% static 'sports/default_match.jpg' %}{% endif %}";
   const confirmedBay = JSON.parse(sessionStorage.getItem('confirmedBay') || '{}');
   const matchTitle = sessionStorage.getItem('confirmedMatch') || '';
-  const matchPoster = sessionStorage.getItem('confirmedPoster') || '';
+  const matchPoster = sessionStorage.getItem('confirmedPoster') || '/static/sports/default_match.jpg';
   const matchVenue = sessionStorage.getItem('confirmedVenue') || '';
   const matchDate = sessionStorage.getItem('confirmedDate') || '';
+  const posterImg = document.getElementById('matchPoster');
+  posterImg.src = matchPoster;
+  posterImg.alt = matchTitle;
   const totalPrice = sessionStorage.getItem('confirmedTotal') || '0';
   const selectedMethod = sessionStorage.getItem('confirmedMethod') || '';
   const ticketCount = sessionStorage.getItem('ticketCount') || '0';
 
   // Extra fields
-  const basePrice = sessionStorage.getItem('basePrice') || '0';
-  const fee = sessionStorage.getItem('fee') || '35';
-  const discount = sessionStorage.getItem('discount') || '0';
-  const gate = sessionStorage.getItem('entryGate') || 'Gate ' + (Math.floor(Math.random()*5)+1);
-  const seatNumbers = sessionStorage.getItem('seatNumbers') || 'Auto Assigned';
-  const bookingTime = new Date().toLocaleString();
+  const basePrice = sessionStorage.getItem('confirmedBasePrice') || '0';
+  const fee = sessionStorage.getItem('confirmedConvenience') || '0';
+  const discount = sessionStorage.getItem('confirmedDiscount') || '0';
+  const gate = sessionStorage.getItem('confirmedGate') || 'Gate 1';
+  const seatNumbers = (JSON.parse(sessionStorage.getItem('confirmedSeats')) || []).join(', ') || 'Auto Assigned';
+  const bookingTime = new Date(sessionStorage.getItem('confirmedBookingTime') || new Date()).toLocaleString();
 
   const bookingRef = 'OC' + Math.random().toString(36).substring(2, 8).toUpperCase();
   sessionStorage.setItem('bookingRef', bookingRef);
+
+  document.getElementById('matchTitle').textContent = matchTitle;
+  document.getElementById('matchMeta').textContent = `${matchVenue} • ${new Date(matchDate).toLocaleString()}`;
 
   // Fill event info section
   document.getElementById('eventTitle').textContent = matchTitle;
