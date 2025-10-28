@@ -777,66 +777,62 @@
       buildSVG();
       refreshUI();
 
-      // continue button -> post booking then redirect to payment page
-      document.getElementById('continueBtn').addEventListener('click', () => {
+      // --- Continue to Payment (Django session-based) ---
+      document.getElementById('continueBtn').addEventListener('click', async () => {
         if (selectedSet.size === 0) return;
 
-        const bays = Array.from(selectedSet);
-        const selectedBay = baysData.find(b => String(b.id) === String(bays[0]));
+        const bayIds = Array.from(selectedSet);
+        const selectedBay = baysData.find(b => String(b.id) === String(bayIds[0]));
         if (!selectedBay) return;
 
         // --- calculate totals ---
         const basePrice = Number(selectedBay.price || 0) * seatCount;
         const convenienceFee = Math.round(basePrice * 0.05);
         const gstFee = Math.round((basePrice + convenienceFee) * 0.18);
-        const discountApplied = 0; // future placeholder if you add coupons
+        const discountApplied = 0;
         const totalPayable = basePrice + convenienceFee + gstFee - discountApplied;
 
         // --- derive extra details ---
-        const seatNumbers = Array.from({length: seatCount}, (_, i) => `${selectedBay.label}-${i+1}`);
-        const entryGate = `Gate ${selectedBay.ring + 1}`; // Example: Ring 0 → Gate 1
+        const seatNumbers = Array.from({ length: seatCount }, (_, i) => `${selectedBay.label}-${i + 1}`);
+        const entryGate = `Gate ${selectedBay.ring + 1}`;
         const bookingTime = new Date().toISOString();
 
-        // --- Store all booking info for Payment + Confirmation pages ---
-        sessionStorage.setItem('selectedBay', JSON.stringify(selectedBay));
-        sessionStorage.setItem('ticketCount', seatCount);
-        sessionStorage.setItem('seatNumbers', JSON.stringify(seatNumbers));
-        sessionStorage.setItem('basePrice', basePrice);
-        sessionStorage.setItem('convenienceFee', convenienceFee);
-        sessionStorage.setItem('gstFee', gstFee);
-        sessionStorage.setItem('discountApplied', discountApplied);
-        sessionStorage.setItem('entryGate', entryGate);
-        sessionStorage.setItem('totalPrice', totalPayable);
-        sessionStorage.setItem('bookingTime', bookingTime);
-        sessionStorage.setItem('confirmedVenue', "{{ match.venue }}");
-        sessionStorage.setItem('confirmedDate', "{{ match.date }}");
-        sessionStorage.setItem('confirmedMatch', "{{ match.title }}");
-        sessionStorage.setItem('confirmedPoster', "{% static match.image %}");
-
-        // --- Send basic booking payload to backend (optional) ---
+        // --- Send booking info to Django session backend ---
         const payload = {
-          bays: bays,
-          total: totalPayable,
-          payment_method: 'pending',
-          seats: seatNumbers,
-          booked_at: bookingTime
+          bay: selectedBay,
+          ticket_count: seatCount,
+          seat_numbers: seatNumbers,
+          base_price: basePrice,
+          convenience_fee: convenienceFee,
+          gst_fee: gstFee,
+          discount_applied: discountApplied,
+          entry_gate: entryGate,
+          total_price: totalPayable,
+          booking_time: bookingTime,
         };
 
-        fetch("{% url 'sports:confirm_booking' %}", {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
-          body: JSON.stringify(payload),
-          credentials: 'same-origin'
-        }).then(r => r.json()).then(data => {
+        try {
+          const response = await fetch("{% url 'sports:confirm_booking' %}", {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify(payload),
+            credentials: 'same-origin'
+          });
+
+          const data = await response.json();
           if (data.status === 'success') {
+            // Redirect to payment view — all data now stored in Django session
             window.location.href = "/sports/{{ match.slug }}/payment/";
           } else {
             alert(data.message || 'Booking failed');
           }
-        }).catch(err => {
-          console.error(err);
-          alert('Booking failed — check console');
-        });
+        } catch (error) {
+          console.error('Error sending booking data:', error);
+          alert('Failed to continue to payment.');
+        }
       });
     }
   </script>
