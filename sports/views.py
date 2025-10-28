@@ -96,34 +96,42 @@ def confirm_booking(request):
     """Handles AJAX booking confirmation"""
     if request.method != 'POST':
         return JsonResponse({'status': 'error', 'message': 'Invalid method'})
-
     try:
         booking_data = request.session.get('booking_data')
         if not booking_data:
             return JsonResponse({'status': 'error', 'message': 'Session expired or no booking found'})
-
         bay_id = booking_data['bay_id']
         total_price = booking_data['total_price']
         ticket_count = booking_data['ticket_count']
         match_id = booking_data.get('match_id')
-        payment_method = json.loads(request.body).get('payment_method', 'Unknown')
+        payment_method = json.loads(request.body or '{}').get('payment_method', 'Unknown')
+        
+        bay = Bay.objects.get(id=bay_id)
+        match = SportsMatch.objects.get(id=match_id)
 
-        # Update bay as booked
-        Bay.objects.filter(id=bay_id).update(is_booked=True)
+        bay.is_booked = True
+        bay.save()
 
-        # Store booking confirmation in session
-        request.session['confirmed_booking'] = {
-            'bay_id': bay_id,
-            'total_price': total_price,
-            'ticket_count': ticket_count,
-            'payment_method': payment_method,
-            'match_id': match_id
-        }
+        booking_ref = "OC" + get_random_string(8).upper()
+
+        booking = Booking.objects.create(
+            user=request.user,
+            match=match,
+            bay=bay,
+            booking_ref=booking_ref,
+            ticket_count=ticket_count,
+            total_price=total_price,
+            payment_method=payment_method,
+            entry_gate=f"Gate {bay.ring + 1}",
+            seat_numbers=[f"{bay.code}-{i+1}" for i in range(int(ticket_count))],
+        )
+
+        request.session['confirmed_booking'] = {'booking_id': booking.id}
         if 'booking_data' in request.session:
             del request.session['booking_data']
         request.session.modified = True
-
-        return JsonResponse({'status': 'success'})
+        
+        return JsonResponse({'status': 'success', 'booking_ref': booking_ref})
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)})
 
@@ -133,22 +141,13 @@ def sports_confirmation(request, slug):
     """Renders booking confirmation page"""
     match = get_object_or_404(SportsMatch, slug=slug)
     confirmed = request.session.get('confirmed_booking')
-
     if not confirmed:
         return redirect('sports:seat_selection', slug=slug)
-
-    try:
-        bay = Bay.objects.get(id=confirmed['bay_id'])
-    except Bay.DoesNotExist:
-        bay = None
-
-    context = {
-        'match': match,
-        'bay': bay,
-        'total_price': confirmed.get('total_price'),
-        'ticket_count': confirmed.get('ticket_count'),
-        'payment_method': confirmed.get('payment_method'),
-    }
+    booking_id = confirmed.get('booking_id')
+    booking = Booking.objects.filter(id=booking_id, user=request.user).select_related('bay', 'match').first()
+    if not booking:
+        return redirect('sports:seat_selection', slug=slug)
+    context = {'match': booking.match, 'booking': booking}
     return render(request, "sports/sports_confirmation.html", context)
 
 # 🧾 STEP 5 — Printable Ticket
@@ -156,9 +155,14 @@ def sports_confirmation(request, slug):
 def sports_ticket_template(request):
     """Sports printable ticket view"""
     confirmed = request.session.get('confirmed_booking')
-    match_id = confirmed.get('match_id') if confirmed else None
-    match = SportsMatch.objects.filter(id=match_id).first()
+    booking_id = confirmed.get('booking_id') if confirmed else None
+    booking = Booking.objects.filter(id=booking_id, user=request.user).select_related('match', 'bay').first()
     return render(request, "sports/sports_ticket_template.html", {
-        'match': match,
+        'match': booking.match if booking else None,
         'booking': confirmed,
     })
+
+@login_required
+def my_bookings(request):
+    bookings = Booking.objects.filter(user=request.user).select_related('match', 'bay').order_by('-booked_at')
+    return render(request, "sports/my_bookings.html", {"bookings": bookings})

@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.text import slugify
 from django.contrib.auth import get_user_model
+from django.conf import settings
 
 User = get_user_model()
 
@@ -38,13 +39,17 @@ class Bay(models.Model):
         return f"{self.match.title} - {self.code}"
     
 class Booking(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    match = models.ForeignKey(SportsMatch, on_delete=models.CASCADE)
-    bays = models.ManyToManyField(Bay)
-    total_amount = models.PositiveIntegerField()
+    """Stores confirmed sports bookings"""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    match = models.ForeignKey('SportsMatch', on_delete=models.CASCADE)
+    bay = models.ForeignKey('Bay', on_delete=models.SET_NULL, null=True, blank=True)
+    booking_ref = models.CharField(max_length=20, unique=True)
+    ticket_count = models.PositiveIntegerField(default=1)
+    total_price = models.DecimalField(max_digits=10, decimal_places=2)
     payment_method = models.CharField(max_length=50)
-    booking_time = models.DateTimeField(auto_now_add=True)
-    payment_status = models.CharField(max_length=20, default='Pending')
+    booked_at = models.DateTimeField(auto_now_add=True)
+    entry_gate = models.CharField(max_length=50, blank=True, null=True)
+    seat_numbers = models.JSONField(default=list, blank=True)
 
     def __str__(self):
-        return f"{self.user.username} - {self.match.title}"
+        return f"{self.user.username} - {self.match.title} ({self.booking_ref})"
