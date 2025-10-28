@@ -123,7 +123,7 @@ def payment_view(request, slug):
     }
     context = {
         'match': match,
-        'selected_bay': bay_data,
+        'bay': bay_data,
         'total_price': float(booking_data['total_price']),
         'ticket_count': int(booking_data['ticket_count']),
     }
