@@ -11,6 +11,7 @@ def sports_view(request):
     return render(request, 'sports/main_sports.html')
 
 # 🏟️ STEP 1 — Seat Selection
+
 @login_required
 def seat_selection_view(request, slug):
     """Seat selection page for a specific match"""
@@ -20,10 +21,7 @@ def seat_selection_view(request, slug):
     # If no bays exist, render with empty data
     if not bays_qs.exists():
         return render(request, 'sports/sports_seat_selection.html', {
-            'match': match,
-            'stands_json': json.dumps([]),
-            'stands': [],
-            'rings_order': [],
+            'match': match, 'stands_json': json.dumps([]), 'stands': [], 'rings_order': [],
         })
 
     # Group by stand → ring
@@ -43,28 +41,62 @@ def seat_selection_view(request, slug):
         rings_map = {r: stands[stand_name].get(r, []) for r in sorted(rings_present)}
         ordered_stands.append({'name': stand_name, 'rings': rings_map})
 
-    # If user confirmed seat selection, store in Django session
+    # Handle POST (AJAX or form)
     if request.method == 'POST':
-        selected_bay_id = request.POST.get('bay_id')
-        total_price = request.POST.get('total_price')
-        ticket_count = request.POST.get('ticket_count')
+        try:
+            # --- Parse request body ---
+            if request.content_type == 'application/json':
+                data = json.loads(request.body.decode('utf-8'))
+            else:
+                data = request.POST.dict()
 
-        if selected_bay_id and total_price:
-            request.session['booking_data'] = {
+            # --- Extract values ---
+            bay = data.get('bay') if isinstance(data.get('bay'), dict) else None
+            selected_bay_id = data.get('bay_id') or (bay.get('id') if bay else None)
+
+            # Build session data from payload
+            booking_data = {
                 'bay_id': selected_bay_id,
-                'total_price': total_price,
-                'ticket_count': ticket_count,
+                'stand': bay.get('stand') if bay else data.get('stand'),
+                'ring': bay.get('ring') if bay else data.get('ring'),
+                'price': bay.get('price') if bay else data.get('price'),
+                'ticket_count': data.get('ticket_count'),
+                'seat_numbers': data.get('seat_numbers'),
+                'base_price': data.get('base_price'),
+                'convenience_fee': data.get('convenience_fee'),
+                'gst_fee': data.get('gst_fee'),
+                'discount_applied': data.get('discount_applied'),
+                'entry_gate': data.get('entry_gate'),
+                'total_price': data.get('total_price'),
+                'booking_time': data.get('booking_time'),
                 'match_id': match.id,
             }
-            request.session.modified = True
-            return redirect('sports:payment', slug=slug)
 
+            # Ensure minimal required data
+            if not booking_data['bay_id'] or not booking_data['total_price']:
+                return JsonResponse({'status': 'error', 'message': 'Missing booking info'})
+
+            # --- Store in Django session ---
+            request.session['booking_data'] = booking_data
+            request.session.modified = True
+
+            # --- Respond according to request type ---
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.content_type == 'application/json':
+                return JsonResponse({'status': 'success'})
+            else:
+                return redirect('sports:payment', slug=slug)
+
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
+
+    # Normal GET render
     return render(request, 'sports/sports_seat_selection.html', {
         'match': match,
         'stands': ordered_stands,
         'stands_json': json.dumps(ordered_stands, default=str),
         'rings_order': sorted(rings_present),
     })
+
 
 # 💳 STEP 2 — Payment
 @login_required
