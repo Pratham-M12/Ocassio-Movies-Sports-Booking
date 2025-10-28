@@ -348,10 +348,8 @@ payBtn.onclick = async () => {
     alert('Please select a payment method.');
     return;
   }
-
   payBtn.disabled = true;
   payBtn.innerHTML = 'Processing <span class="loader"></span>';
-
   try {
     const response = await fetch("{% url 'sports:confirm_booking' %}", {
       method: 'POST',
@@ -366,9 +364,8 @@ payBtn.onclick = async () => {
         payment_method: selectedMethod,
       }),
     });
-
     const data = await response.json();
-    await new Promise(res => setTimeout(res, 2000));
+    await new Promise(res => setTimeout(res, 1500));
 
     if (data.status === 'success') {
       window.location.href = `/sports/{{ match.slug }}/confirmation/`;
@@ -377,9 +374,10 @@ payBtn.onclick = async () => {
       payBtn.disabled = false;
       payBtn.textContent = "Pay Now";
     }
-  } catch (error) {
-    console.error("Error confirming booking:", error);
+  } catch (err) {
+    console.error("Error confirming booking:", err);
     alert('An error occurred while confirming payment.');
+  } finally {
     payBtn.disabled = false;
     payBtn.textContent = "Pay Now";
   }
@@ -390,10 +388,10 @@ function getCookie(name) {
   let cookieValue = null;
   if (document.cookie && document.cookie !== '') {
     const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim();
-      if (cookie.startsWith(name + '=')) {
-        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+    for (let c of cookies) {
+      c = c.trim();
+      if (c.startsWith(name + '=')) {
+        cookieValue = decodeURIComponent(c.substring(name.length + 1));
         break;
       }
     }
@@ -401,6 +399,5 @@ function getCookie(name) {
   return cookieValue;
 }
 </script>
-
 </body>
 </html>
