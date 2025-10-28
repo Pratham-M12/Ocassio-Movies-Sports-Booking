@@ -285,6 +285,7 @@ footer{width:100vw;background:#181818;color:#b0b0b8;text-align:center;padding:2.
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+{{ bay|json_script:"bayData" }}
 <script>
 // --- Django Session-Based Sports Payment Script ---
 
@@ -292,7 +293,7 @@ footer{width:100vw;background:#181818;color:#b0b0b8;text-align:center;padding:2.
 const posterPath = "{% if match.image %}{% static match.image %}{% else %}{% static 'sports/default_match.jpg' %}{% endif %}";
 
 // Data rendered from Django context
-const selectedBay = {{ bay|safe }};
+const selectedBay = JSON.parse(document.getElementById('bayData').textContent);
 const totalTickets = {{ ticket_count|default:1 }};
 const totalPrice = {{ total_price|default:0 }};
 const matchTitle = "{{ match.title }}";
