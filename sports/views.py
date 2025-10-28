@@ -4,6 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.utils.crypto import get_random_string
 from .models import SportsMatch, Bay, Booking
+from django.contrib import messages
 import json
 
 def sports_view(request):
@@ -97,7 +98,6 @@ def seat_selection_view(request, slug):
         'rings_order': sorted(rings_present),
     })
 
-
 # 💳 STEP 2 — Payment
 @login_required
 def payment_view(request, slug):
@@ -107,6 +107,7 @@ def payment_view(request, slug):
 
     # If no session data, redirect to seat selection
     if not booking_data:
+        messages.error(request, "Session expired or no booking found.")
         return redirect('sports:seat_selection', slug=slug)
 
     try:
@@ -114,11 +115,17 @@ def payment_view(request, slug):
     except Bay.DoesNotExist:
         return redirect('sports:seat_selection', slug=slug)
 
+    bay_data = {
+        'id': selected_bay.id,
+        'standName': selected_bay.stand,
+        'ring': selected_bay.ring,
+        'price': float(selected_bay.price),
+    }
     context = {
         'match': match,
-        'selected_bay': selected_bay,
-        'total_price': booking_data.get('total_price'),
-        'ticket_count': booking_data.get('ticket_count'),
+        'selected_bay': bay_data,
+        'total_price': float(booking_data['total_price']),
+        'ticket_count': int(booking_data['ticket_count']),
     }
     return render(request, 'sports/sports_payment.html', context)
 
