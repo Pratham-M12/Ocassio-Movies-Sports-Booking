@@ -122,11 +122,11 @@ footer{width:100vw;background:#181818;color:#b0b0b8;text-align:center;padding:2.
     <div id="modalBg" style="display:none;"></div>
     <div class="top-section">
       <button class="back-btn" onclick="window.history.back()">&#8592; Back</button>
-      <img id="matchPoster" class="match-poster" src="{% if match.image %}{% static match.image %}{% else %}{% static 'sports/default_match.jpg' %}{% endif %}" alt="{{ match.title }}"/>
+      <img class="match-poster" src="{% if match.image %}{% static match.image %}{% else %}{% static 'sports/default_match.jpg' %}{% endif %}" alt="{{ match.title }}"/>
       <div class="match-details">
-        <div id="matchTitle" class="match-title"></div>
-        <div id="matchMeta" class="match-meta">
-          {{ match.venue }} • {{ match.date }}
+        <div class="match-title">{{ match.title }}</div>
+        <div class="match-meta">
+          📍🏟️ {{ match.venue }} • {{ match.date }} | {{ match.category }}
         </div>
       </div>
     </div>
@@ -336,6 +336,7 @@ window.addEventListener('DOMContentLoaded', () => {confetti({particleCount: 100,
 </script>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+  const posterPath = "{% if match.image %}{% static match.image %}{% else %}{% static 'sports/default_match.jpg' %}{% endif %}";
   const confirmedBay = JSON.parse(sessionStorage.getItem('confirmedBay') || '{}');
   const matchTitle = sessionStorage.getItem('confirmedMatch') || '';
   const matchPoster = sessionStorage.getItem('confirmedPoster') || '';
