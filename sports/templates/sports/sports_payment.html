@@ -375,9 +375,13 @@ payBtn.onclick = async () => {
       sessionStorage.removeItem('totalPrice');
       sessionStorage.setItem('confirmedSeats', JSON.stringify(selectedSeats || []));
       sessionStorage.setItem('confirmedGate', selectedBay.entryGate || 'Gate 1');
-      sessionStorage.setItem('confirmedBasePrice', basePrice || 0);
-      sessionStorage.setItem('confirmedConvenience', convenienceFee || 0);
-      sessionStorage.setItem('confirmedDiscount', appliedDiscount || 0);
+      const subtotal = selectedBay.price * totalTickets;
+      const convFee = Math.round(subtotal * 0.05);
+      const gstFee = Math.round((subtotal + convFee) * 0.18);
+      sessionStorage.setItem('confirmedBasePrice', subtotal);
+      sessionStorage.setItem('confirmedConvenience', convFee);
+      sessionStorage.setItem('confirmedDiscount', 0);
+      sessionStorage.setItem('confirmedGST', gstFee);
       sessionStorage.setItem('confirmedBookingTime', new Date().toISOString());
       // Redirect to confirmation
       window.location.href = `/sports/{{ match.slug }}/confirmation/`;
