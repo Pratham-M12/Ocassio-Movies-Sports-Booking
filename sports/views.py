@@ -105,6 +105,7 @@ def confirm_booking(request):
         bay_id = booking_data['bay_id']
         total_price = booking_data['total_price']
         ticket_count = booking_data['ticket_count']
+        match_id = booking_data.get('match_id')
         payment_method = json.loads(request.body).get('payment_method', 'Unknown')
 
         # Update bay as booked
@@ -116,8 +117,10 @@ def confirm_booking(request):
             'total_price': total_price,
             'ticket_count': ticket_count,
             'payment_method': payment_method,
+            'match_id': match_id
         }
-        del request.session['booking_data']
+        if 'booking_data' in request.session:
+            del request.session['booking_data']
         request.session.modified = True
 
         return JsonResponse({'status': 'success'})
