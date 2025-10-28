@@ -286,6 +286,11 @@ footer{width:100vw;background:#181818;color:#b0b0b8;text-align:center;padding:2.
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 <script>
+  const selectedSeats = JSON.parse(sessionStorage.getItem('selectedBay')) ? [JSON.parse(sessionStorage.getItem('selectedBay'))] : [];
+  const ticketCount = sessionStorage.getItem('ticketCount') || 0;
+  const totalPrice = sessionStorage.getItem('totalPrice') || 0;
+</script>
+<script>
 // --- SPORTS PAYMENT SCRIPT ---
 const posterPath = "{% if match.image %}{% static match.image %}{% else %}{% static 'sports/default_match.jpg' %}{% endif %}";
 
