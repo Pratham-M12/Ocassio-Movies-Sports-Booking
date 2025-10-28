@@ -286,30 +286,36 @@ footer{width:100vw;background:#181818;color:#b0b0b8;text-align:center;padding:2.
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 <script>
-// --- SPORTS PAYMENT SCRIPT ---
+// --- Django Session-Based Sports Payment Script ---
+
+// Static image
 const posterPath = "{% if match.image %}{% static match.image %}{% else %}{% static 'sports/default_match.jpg' %}{% endif %}";
 
-// Load selected stand/bay info from sessionStorage
-const selectedSeats = JSON.parse(sessionStorage.getItem('selectedSeats') || '[]');
-const selectedBay = JSON.parse(sessionStorage.getItem('selectedBay') || '{}');
-const totalTickets = parseInt(sessionStorage.getItem('ticketCount') || '0');
-const totalPrice = parseInt(sessionStorage.getItem('totalPrice') || '0');
+// Data rendered from Django context
+const selectedBay = {{ bay|safe }};
+const totalTickets = {{ ticket_count|default:1 }};
+const totalPrice = {{ total_price|default:0 }};
+const matchTitle = "{{ match.title }}";
+const matchVenue = "{{ match.venue }}";
+const matchDate = "{{ match.date }}";
 
+// Elements
 const seatSummaryBody = document.querySelector('#seatSummary tbody');
 const totalAmountSpan = document.getElementById('totalAmount');
 const payBtn = document.getElementById('payBtn');
 const paymentButtons = document.querySelectorAll('.payment-methods button');
 
 let selectedMethod = null;
-// Render summary
+
+// --- Render payment summary ---
 function renderPaymentSummary() {
   seatSummaryBody.innerHTML = '';
-  if (Object.keys(selectedBay).length === 0) return;
 
   const subtotal = selectedBay.price * totalTickets;
   const convFee = Math.round(subtotal * 0.05);
   const gstFee = Math.round((subtotal + convFee) * 0.18);
   const totalPayable = subtotal + convFee + gstFee;
+
   const tr = document.createElement('tr');
   tr.innerHTML = `
     <td>${selectedBay.standName} (Ring ${selectedBay.ring})</td>
@@ -322,11 +328,12 @@ function renderPaymentSummary() {
   document.getElementById('convFee').innerText = `₹${convFee.toLocaleString('en-IN')}`;
   document.getElementById('gstFee').innerText = `₹${gstFee.toLocaleString('en-IN')}`;
   document.getElementById('totalAmount').innerText = `₹${totalPayable.toLocaleString('en-IN')}`;
+
   payBtn.disabled = false;
 }
 renderPaymentSummary();
 
-// Payment method selection
+// --- Payment Method Selection ---
 paymentButtons.forEach(btn => {
   btn.onclick = () => {
     paymentButtons.forEach(b => b.classList.remove('active'));
@@ -335,24 +342,25 @@ paymentButtons.forEach(btn => {
   };
 });
 
-// Handle Pay Now
+// --- Handle Payment ---
 payBtn.onclick = async () => {
   if (!selectedMethod) {
     alert('Please select a payment method.');
     return;
   }
+
   payBtn.disabled = true;
   payBtn.innerHTML = 'Processing <span class="loader"></span>';
 
   try {
-    const response = await fetch('/sports/confirm_booking/', {
+    const response = await fetch("{% url 'sports:confirm_booking' %}", {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-CSRFToken': getCookie('csrftoken'),
       },
       body: JSON.stringify({
-        bays: [selectedBay.id],
+        bay_id: selectedBay.id,
         total: totalPrice,
         tickets: totalTickets,
         payment_method: selectedMethod,
@@ -363,27 +371,6 @@ payBtn.onclick = async () => {
     await new Promise(res => setTimeout(res, 2000));
 
     if (data.status === 'success') {
-      sessionStorage.setItem('confirmedBay', JSON.stringify(selectedBay));
-      sessionStorage.setItem('confirmedTotal', totalPrice);
-      sessionStorage.setItem('confirmedMethod', selectedMethod);
-      sessionStorage.setItem('confirmedMatch', '{{ match.title }}');
-      sessionStorage.setItem('confirmedVenue', '{{ match.venue }}');
-      sessionStorage.setItem('confirmedDate', '{{ match.date }}');
-      sessionStorage.setItem('confirmedPoster', posterPath);
-      sessionStorage.setItem('ticketCount', sessionStorage.getItem('ticketCount') || seatCount || 1);
-      sessionStorage.removeItem('selectedBay');
-      sessionStorage.removeItem('totalPrice');
-      sessionStorage.setItem('confirmedSeats', JSON.stringify(selectedSeats || []));
-      sessionStorage.setItem('confirmedGate', selectedBay.entryGate || 'Gate 1');
-      const subtotal = selectedBay.price * totalTickets;
-      const convFee = Math.round(subtotal * 0.05);
-      const gstFee = Math.round((subtotal + convFee) * 0.18);
-      sessionStorage.setItem('confirmedBasePrice', subtotal);
-      sessionStorage.setItem('confirmedConvenience', convFee);
-      sessionStorage.setItem('confirmedDiscount', 0);
-      sessionStorage.setItem('confirmedGST', gstFee);
-      sessionStorage.setItem('confirmedBookingTime', new Date().toISOString());
-      // Redirect to confirmation
       window.location.href = `/sports/{{ match.slug }}/confirmation/`;
     } else {
       alert('Booking failed: ' + data.message);
@@ -398,7 +385,7 @@ payBtn.onclick = async () => {
   }
 };
 
-// Function to get CSRF token (for Django POST)
+// --- Helper: Get CSRF Token ---
 function getCookie(name) {
   let cookieValue = null;
   if (document.cookie && document.cookie !== '') {
@@ -414,5 +401,6 @@ function getCookie(name) {
   return cookieValue;
 }
 </script>
+
 </body>
 </html>
