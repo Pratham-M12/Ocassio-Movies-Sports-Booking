@@ -332,44 +332,45 @@ footer{width:100vw;background:#181818;color:#b0b0b8;text-align:center;padding:2.
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 <script>
-window.addEventListener('DOMContentLoaded', () => {confetti({particleCount: 100, spread: 70, origin: { y: 0.6 },});});
-</script>
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const posterPath = "{% if match.image %}{% static match.image %}{% else %}{% static 'sports/default_match.jpg' %}{% endif %}";
+window.addEventListener('DOMContentLoaded', () => {
+  // 🎉 Confetti animation
+  confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+
+  // 🔹 Load session details
   const confirmedBay = JSON.parse(sessionStorage.getItem('confirmedBay') || '{}');
   const matchTitle = sessionStorage.getItem('confirmedMatch') || '';
   const matchPoster = sessionStorage.getItem('confirmedPoster') || '/static/sports/default_match.jpg';
   const matchVenue = sessionStorage.getItem('confirmedVenue') || '';
   const matchDate = sessionStorage.getItem('confirmedDate') || '';
-  const posterImg = document.getElementById('matchPoster');
-  posterImg.src = matchPoster;
-  posterImg.alt = matchTitle;
   const totalPrice = sessionStorage.getItem('confirmedTotal') || '0';
   const selectedMethod = sessionStorage.getItem('confirmedMethod') || '';
   const ticketCount = sessionStorage.getItem('ticketCount') || '0';
 
-  // Extra fields
   const basePrice = sessionStorage.getItem('confirmedBasePrice') || '0';
   const fee = sessionStorage.getItem('confirmedConvenience') || '0';
   const discount = sessionStorage.getItem('confirmedDiscount') || '0';
   const gate = sessionStorage.getItem('confirmedGate') || 'Gate 1';
   const seatNumbers = (JSON.parse(sessionStorage.getItem('confirmedSeats')) || []).join(', ') || 'Auto Assigned';
   const bookingTime = new Date(sessionStorage.getItem('confirmedBookingTime') || new Date()).toLocaleString();
-
   const bookingRef = 'OC' + Math.random().toString(36).substring(2, 8).toUpperCase();
   sessionStorage.setItem('bookingRef', bookingRef);
 
+  // 🖼️ Poster setup
+  const posterImg = document.getElementById('matchPoster');
+  if (posterImg) {
+    posterImg.src = matchPoster;
+    posterImg.alt = matchTitle;
+  }
+
+  // 🎫 Fill event info
   document.getElementById('matchTitle').textContent = matchTitle;
   document.getElementById('matchMeta').textContent = `${matchVenue} • ${new Date(matchDate).toLocaleString()}`;
-
-  // Fill event info section
   document.getElementById('eventTitle').textContent = matchTitle;
   document.getElementById('eventVenue').textContent = matchVenue;
   document.getElementById('eventDate').textContent = new Date(matchDate).toLocaleString();
   document.getElementById('eventCategory').textContent = "Cricket Match";
 
-  // Fill summary table
+  // 🧾 Fill summary table
   document.getElementById('summaryMatch').textContent = matchTitle;
   document.getElementById('summaryVenue').textContent = matchVenue;
   document.getElementById('summaryDate').textContent = new Date(matchDate).toLocaleString();
@@ -386,7 +387,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById('summaryRef').textContent = bookingRef;
   document.getElementById('summaryTime').textContent = bookingTime;
 
-  // Generate QR code
+  // 🧾 Generate QR code
   const qrCanvas = document.getElementById("qrCodeImg");
   new QRious({
     element: qrCanvas,
@@ -399,53 +400,54 @@ document.addEventListener("DOMContentLoaded", () => {
       ref: bookingRef
     })
   });
-});
+  const qrImg = qrCanvas.toDataURL("image/png");
 
-// --- Print Ticket ---
-document.getElementById('printTicketBtn').addEventListener('click', () => {
-  const url = `/sports/ticket_template/?match=${encodeURIComponent(matchTitle)}&stand=${encodeURIComponent(confirmedBay.standName || confirmedBay.stand)}&ring=${encodeURIComponent(confirmedBay.ring)}&tickets=${ticketCount}&total=${totalPrice}&payment=${selectedMethod}`;
-  const win = window.open(url, '_blank');
-  const check = setInterval(() => {
-    if (win.document.readyState === 'complete') {
-      clearInterval(check);
-      win.focus();
-      win.print();
-    }
-  }, 500);
-});
-
-// --- Download Receipt ---
-document.getElementById('downloadReceiptBtn').addEventListener('click', async () => {
-  const btn = document.getElementById('downloadReceiptBtn');
-  btn.innerHTML = 'Generating...';
-  btn.disabled = true;
-  try {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: [350, 550] });
-    const html = `
-      <h2>Ocassio Sports Ticket</h2>
-      <p><b>Match:</b> ${matchTitle}</p>
-      <p><b>Stand:</b> ${confirmedBay.standName || confirmedBay.stand}</p>
-      <p><b>Ring:</b> ${confirmedBay.ring}</p>
-      <p><b>Tickets:</b> ${ticketCount}</p>
-      <p><b>Total:</b> ₹${totalPrice}</p>
-      <p><b>Payment:</b> ${selectedMethod}</p>
-      <img src="${qrImg}" width="100">
-    `;
-    await doc.html(html, {
-      x: 10, y: 10, html2canvas: { scale: 0.8 },
-      callback: function (pdf) {
-        pdf.save('Ocassio_Sports_Ticket.pdf');
-        btn.innerHTML = 'Download Receipt';
-        btn.disabled = false;
+  // 🖨️ Print Ticket
+  document.getElementById('printTicketBtn').addEventListener('click', () => {
+    const url = `/sports/ticket_template/?match=${encodeURIComponent(matchTitle)}&stand=${encodeURIComponent(confirmedBay.standName || confirmedBay.stand)}&ring=${encodeURIComponent(confirmedBay.ring)}&tickets=${ticketCount}&total=${totalPrice}&payment=${selectedMethod}`;
+    const win = window.open(url, '_blank');
+    const check = setInterval(() => {
+      if (win.document.readyState === 'complete') {
+        clearInterval(check);
+        win.focus();
+        win.print();
       }
-    });
-  } catch (err) {
-    alert('Failed to generate PDF.');
-    console.error(err);
-    btn.innerHTML = 'Download Receipt';
-    btn.disabled = false;
-  }
+    }, 500);
+  });
+
+  // 📄 Download Receipt (PDF)
+  document.getElementById('downloadReceiptBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('downloadReceiptBtn');
+    btn.innerHTML = 'Generating...';
+    btn.disabled = true;
+    try {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: [350, 550] });
+      const html = `
+        <h2>Ocassio Sports Ticket</h2>
+        <p><b>Match:</b> ${matchTitle}</p>
+        <p><b>Stand:</b> ${confirmedBay.standName || confirmedBay.stand}</p>
+        <p><b>Ring:</b> ${confirmedBay.ring}</p>
+        <p><b>Tickets:</b> ${ticketCount}</p>
+        <p><b>Total:</b> ₹${totalPrice}</p>
+        <p><b>Payment:</b> ${selectedMethod}</p>
+        <img src="${qrImg}" width="100">
+      `;
+      await doc.html(html, {
+        x: 10, y: 10, html2canvas: { scale: 0.8 },
+        callback: function (pdf) {
+          pdf.save('Ocassio_Sports_Ticket.pdf');
+          btn.innerHTML = 'Download Receipt';
+          btn.disabled = false;
+        }
+      });
+    } catch (err) {
+      alert('Failed to generate PDF.');
+      console.error(err);
+      btn.innerHTML = 'Download Receipt';
+      btn.disabled = false;
+    }
+  });
 });
 </script>
 </body>
