@@ -455,12 +455,6 @@ window.addEventListener('DOMContentLoaded', () => {
   // 🎉 Confetti
   confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
 
-  // 🎫 Fill event info section
-  document.getElementById('eventTitle').textContent = booking.matchTitle;
-  document.getElementById('eventVenue').textContent = booking.matchVenue;
-  document.getElementById('eventDate').textContent = new Date(booking.matchDate).toLocaleString();
-  document.getElementById('eventCategory').textContent = "Women's ODI World Cup";
-
   // ✅ Pull booking data directly from Django context (no sessionStorage)
   const booking = {
     matchTitle: "{{ booking.match.title|escapejs }}",
@@ -480,6 +474,12 @@ window.addEventListener('DOMContentLoaded', () => {
     ref: "{{ booking.booking_ref|default:'OCXXXXXX'|escapejs }}",
     bookingTime: "{{ booking.booking_time|date:'Y-m-d H:i:s' }}"
   };
+
+  // 🎫 Fill event info section
+  document.getElementById('eventTitle').textContent = booking.matchTitle;
+  document.getElementById('eventVenue').textContent = booking.matchVenue;
+  document.getElementById('eventDate').textContent = new Date(booking.matchDate).toLocaleString();
+  document.getElementById('eventCategory').textContent = "Women's ODI World Cup";
 
   // 🎫 Fill the UI
   document.getElementById('summaryMatch').textContent = booking.matchTitle;
