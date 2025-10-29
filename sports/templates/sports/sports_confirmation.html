@@ -534,9 +534,38 @@ window.addEventListener('DOMContentLoaded', () => {
     }, 500);
   });
 
-  // 📄 Download Receipt (server-side Django PDF)
-  document.getElementById('downloadReceiptBtn').addEventListener('click', () => {
-    window.location.href = "{% url 'sports:download_receipt' booking.id %}";
+  // 📄 Download Receipt (PDF)
+  document.getElementById('downloadReceiptBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('downloadReceiptBtn');
+    btn.innerHTML = 'Generating...';
+    btn.disabled = true;
+    try {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: [350, 550] });
+      const html = `
+        <h2>Ocassio Sports Ticket</h2>
+        <p><b>Match:</b> ${matchTitle}</p>
+        <p><b>Stand:</b> ${confirmedBay.standName || confirmedBay.stand}</p>
+        <p><b>Ring:</b> ${confirmedBay.ring}</p>
+        <p><b>Tickets:</b> ${ticketCount}</p>
+        <p><b>Total:</b> ₹${totalPrice}</p>
+        <p><b>Payment:</b> ${selectedMethod}</p>
+        <img src="${qrImg}" width="100">
+      `;
+      await doc.html(html, {
+        x: 10, y: 10, html2canvas: { scale: 0.8 },
+        callback: function (pdf) {
+          pdf.save('Ocassio_Sports_Ticket.pdf');
+          btn.innerHTML = 'Download Receipt';
+          btn.disabled = false;
+        }
+      });
+    } catch (err) {
+      alert('Failed to generate PDF.');
+      console.error(err);
+      btn.innerHTML = 'Download Receipt';
+      btn.disabled = false;
+    }
   });
 });
 </script>
