@@ -62,7 +62,7 @@
       </div>
       <div class="match-info">
         <h2 id="matchTitle">{{ match.title }}</h2>
-        <p id="matchMeta">{{ match.venue }}<br>{{ match.date|date:"d M Y, h:i A" }}</p>
+        <p id="matchMeta">{{ match.venue }}<br>{{ match.date|date:"M d, Y" }}</p>
       </div>
       <!-- download logo/button -->
       <button class="download-btn" id="downloadTicket" title="Download ticket as PDF" aria-label="Download ticket as PDF">
@@ -80,6 +80,9 @@
     </div>
     <div class="qr">
       <img id="qrCodeImg" src="" alt="QR Code" />
+    </div>
+    <div class="booking-ref" style="text-align:center; font-size:13px; color:#cfcfcf; background-color:#1f1f22; padding-bottom:10px;">
+      Booking Reference: <strong style="color:#fff;">{{ booking.booking_ref }}</strong>
     </div>
     <div class="cancel-info">
       Cancellation Unavailable: <span>Cut-off time of 20 minutes before the showtime has passed.</span>
@@ -159,27 +162,25 @@
   <script>
   document.addEventListener("DOMContentLoaded", () => {
     const qrImg = document.getElementById("qrCodeImg");
-
     const qr = new QRious({
       value: JSON.stringify({
         match: "{{ match.title|escapejs }}",
         stand: "{{ booking.bay.stand|escapejs }}",
+        ring: "{{ booking.bay.ring|escapejs }}",
         tickets: "{{ booking.ticket_count }}",
         total: "{{ booking.total_price }}",
         ref: "{{ booking.booking_ref|escapejs }}"
       }),
       size: 120
     });
-
     qrImg.src = qr.toDataURL();
-
     document.getElementById('downloadTicket').addEventListener('click', async () => {
       const el = document.querySelector('.ticket');
       const canvas = await html2canvas(el, { scale: 2, backgroundColor: null });
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jspdf.jsPDF({ unit: 'px', format: [canvas.width, canvas.height] });
       pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-      pdf.save('Ocassio_Sports_Ticket.pdf');
+      pdf.save('Ocassio_Sports_Ticket_{{ booking.booking_ref }}.pdf');
     });
   });
   </script>
