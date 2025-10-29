@@ -194,13 +194,16 @@ def sports_confirmation(request, slug):
 @login_required
 def sports_ticket_template(request):
     """Sports printable ticket view"""
-    confirmed = request.session.get('confirmed_booking')
-    booking_id = confirmed.get('booking_id') if confirmed else None
-    booking = Booking.objects.filter(id=booking_id, user=request.user).select_related('match', 'bay').first()
+    booking_id = request.GET.get('booking_id')
+    booking = (Booking.objects.filter(id=booking_id, user=request.user).select_related('match', 'bay').first())
+    if not booking:
+        messages.error(request, "No booking found.")
+        return redirect("sports:home")
     return render(request, "sports/sports_ticket_template.html", {
-        'match': booking.match if booking else None,
-        'booking': confirmed,
+        "match": booking.match,
+        "booking": booking,
     })
+
 
 @login_required
 def my_bookings(request):
