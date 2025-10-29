@@ -460,7 +460,7 @@ window.addEventListener('DOMContentLoaded', () => {
     matchTitle: "{{ booking.match.title|escapejs }}",
     matchPoster: "{% if booking.match.image %}{{ booking.match.image.url|escapejs }}{% else %}{% static 'sports/default_match.jpg' %}{% endif %}",
     matchVenue: "{{ booking.match.venue|escapejs }}",
-    matchDate: "{{ booking.match.date|date:'Y-m-d H:i:s' }}",
+    matchDate: "{{ booking.match.date|date:'Y-m-d' }}",
     stand: "{{ booking.bay.stand|escapejs }}",
     ring: "{{ booking.bay.ring|escapejs }}",
     seatNumbers: "{{ booking.seat_numbers|join:', '|escapejs }}",
