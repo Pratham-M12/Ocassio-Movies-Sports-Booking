@@ -58,7 +58,7 @@
   <div class="ticket ticket--accent">
     <div class="header ticket__header--accent">
       <div class="poster">
-        <img id="matchPoster" src="{% if match.image %}{{ match.image.url }}{% else %}{% static 'sports/default_match.jpg' %}{% endif %}" alt="{{ match.title }}" />
+        <img id="matchPoster" src="{% if match.image %}{{% static match.image %}}{% else %}{% static 'sports/default_match.jpg' %}{% endif %}" alt="{{ match.title }}" />
       </div>
       <div class="match-info">
         <h2 id="matchTitle">{{ match.title }}</h2>
