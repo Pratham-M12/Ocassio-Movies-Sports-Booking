@@ -98,54 +98,23 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
-  <script>
+<script>
   document.addEventListener("DOMContentLoaded", () => {
-    const confirmedMatch = sessionStorage.getItem("confirmedMatch") || "Unknown Match";
-    const confirmedBay = JSON.parse(sessionStorage.getItem("confirmedBay") || "{}");
-    const confirmedPoster = sessionStorage.getItem('confirmedPoster') || "{% static 'sports/default_match.jpg' %}";
-    const confirmedVenue = sessionStorage.getItem('confirmedVenue') || '';
-    const confirmedDate = sessionStorage.getItem('confirmedDate') || '';
-    const totalPrice = sessionStorage.getItem("confirmedTotal") || "0";
-    const selectedMethod = sessionStorage.getItem("confirmedMethod") || "Card";
-    const ticketCount = sessionStorage.getItem("ticketCount") || "1";
-    // Generate QR code directly here instead of reading from sessionStorage
-    const qrCanvas = document.createElement('canvas');
-    const qr = new QRious({
+    // Generate QR code
+    const qrCanvas = document.getElementById("qrCanvas");
+    new QRious({
       element: qrCanvas,
       size: 120,
       value: JSON.stringify({
-        match: confirmedMatch,
-        stand: confirmedBay.standName || confirmedBay.stand,
-        ring: confirmedBay.ring,
-        tickets: ticketCount,
-        total: totalPrice
+        match: "{{ match.title|escapejs }}",
+        stand: "{{ booking.bay.stand|escapejs }}",
+        tickets: "{{ booking.ticket_count }}",
+        total: "{{ booking.total_price }}",
+        ref: "{{ booking.booking_ref }}"
       })
     });
-    document.getElementById('qrCodeImg').src = qr.toDataURL();
 
-    // Generate seat numbers dynamically based on number of tickets
-    let seatNumbers = [];
-    if (confirmedBay && confirmedBay.standName) {
-      const standCode = confirmedBay.standName.replace(/\s+/g, '').substring(0, 3).toUpperCase();
-      const startSeat = Math.floor(Math.random() * 200) + 1; // starting seat number between 1–200
-      const ticketCountNum = parseInt(ticketCount) || 1;
-      for (let i = 0; i < ticketCountNum; i++) {
-        const seatNo = String(startSeat + i).padStart(3, '0'); // pad like 001, 002
-        seatNumbers.push(`${standCode}-${seatNo}`);
-      }
-    }
-
-    // Fill data
-    document.getElementById("matchTitle").textContent = confirmedMatch;
-    document.getElementById("matchPoster").src = confirmedPoster;
-    document.getElementById("matchMeta").textContent = `${confirmedVenue}\n${new Date(confirmedDate).toDateString()}\nStand: ${confirmedBay.standName || confirmedBay.stand}\nRing: ${confirmedBay.ring}`;
-    document.getElementById("standInfo").textContent = `${confirmedBay.standName || confirmedBay.stand || 'Unknown Stand'} — Ring ${confirmedBay.ring || 'N/A'}`;
-    document.getElementById("ticketCount").textContent = `Tickets: ${ticketCount}`;
-    document.getElementById("ticketCount").insertAdjacentHTML('afterend',`<p>Seat No${seatNumbers.length > 1 ? 's' : ''}: ${seatNumbers.join(', ')}</p>`);
-    document.getElementById("priceBase").textContent = "₹" + totalPrice;
-    document.getElementById("totalPrice").textContent = "₹" + totalPrice;
-    document.getElementById("paymentMethod").textContent = selectedMethod;
-
+    // Download ticket as PDF
     document.getElementById('downloadTicket').addEventListener('click', async () => {
       const el = document.querySelector('.ticket');
       const canvas = await html2canvas(el, { scale: 2, backgroundColor: null });
