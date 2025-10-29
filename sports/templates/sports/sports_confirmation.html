@@ -452,47 +452,33 @@ window.addEventListener('DOMContentLoaded', () => {
 </script> -->
 <script>
 window.addEventListener('DOMContentLoaded', () => {
-  // 🎉 Confetti animation
+  // 🎉 Confetti
   confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
 
-  // ✅ Pull data from Django context (injected into HTML)
+  // ✅ Pull booking data directly from Django context (no sessionStorage)
   const booking = {
     matchTitle: "{{ booking.match.title|escapejs }}",
     matchPoster: "{% if booking.match.image %}{{ booking.match.image.url|escapejs }}{% else %}{% static 'sports/default_match.jpg' %}{% endif %}",
     matchVenue: "{{ booking.match.venue|escapejs }}",
-    matchDate: "{{ booking.match.date|date:'Y-m-d' }}",
+    matchDate: "{{ booking.match.date|date:'Y-m-d H:i:s' }}",
     stand: "{{ booking.bay.stand|escapejs }}",
     ring: "{{ booking.bay.ring|escapejs }}",
     seatNumbers: "{{ booking.seat_numbers|join:', '|escapejs }}",
     gate: "{{ booking.entry_gate|escapejs }}",
     tickets: "{{ booking.ticket_count }}",
     basePrice: "{{ booking.bay.price }}",
-    fee: "50", // you can replace this with a dynamic fee if stored
-    discount: "0",
+    fee: "{{ booking.convenience_fee|default:'50' }}",
+    discount: "{{ booking.discount|default:'0' }}",
     totalPrice: "{{ booking.total_price }}",
     method: "{{ booking.payment_method|default:'Online'|escapejs }}",
-    ref: "{{ booking.booking_ref|escapejs }}",
-    bookingTime: "{{ booking.booked_at|date:'M d, Y H:i A' }}"
+    ref: "{{ booking.booking_ref|default:'OCXXXXXX'|escapejs }}",
+    bookingTime: "{{ booking.booking_time|date:'Y-m-d H:i:s' }}"
   };
 
-  // 🖼️ Poster setup
-  const posterImg = document.getElementById('matchPoster');
-  if (posterImg) {
-    posterImg.src = booking.matchPoster;
-    posterImg.alt = booking.matchTitle;
-  }
-
-  // 🎫 Fill event info
-  document.getElementById('matchTitle').textContent = booking.matchTitle;
-  document.getElementById('eventTitle').textContent = booking.matchTitle;
-  document.getElementById('eventVenue').textContent = booking.matchVenue;
-  document.getElementById('eventDate').textContent = new Date(booking.matchDate).toLocaleString();
-  document.getElementById('eventCategory').textContent = "{{ booking.match.category|escapejs }}";
-
-  // 🧾 Fill summary table
+  // 🎫 Fill the UI
   document.getElementById('summaryMatch').textContent = booking.matchTitle;
   document.getElementById('summaryVenue').textContent = booking.matchVenue;
-  document.getElementById('summaryDate').textContent = new Date(booking.matchDate).toLocaleString();
+  document.getElementById('summaryDate').textContent = booking.matchDate;
   document.getElementById('summaryStand').textContent = booking.stand;
   document.getElementById('summaryRing').textContent = booking.ring;
   document.getElementById('summarySeats').textContent = booking.seatNumbers;
@@ -506,7 +492,7 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('summaryRef').textContent = booking.ref;
   document.getElementById('summaryTime').textContent = booking.bookingTime;
 
-  // 🧾 Generate QR code from server data
+  // 🧾 Generate QR Code
   const qrCanvas = document.getElementById("qrCodeImg");
   new QRious({
     element: qrCanvas,
@@ -521,9 +507,9 @@ window.addEventListener('DOMContentLoaded', () => {
   });
   const qrImg = qrCanvas.toDataURL("image/png");
 
-  // 🖨️ Print Ticket (Django ticket template)
+  // 🖨️ Print Ticket
   document.getElementById('printTicketBtn').addEventListener('click', () => {
-    const url = `{% url 'sports:sports_ticket_template' %}?booking_id={{ booking.id }}`;
+    const url = "{% url 'sports:sports_ticket_template' %}?booking_id={{ booking.id }}";
     const win = window.open(url, '_blank');
     const check = setInterval(() => {
       if (win.document.readyState === 'complete') {
@@ -534,28 +520,36 @@ window.addEventListener('DOMContentLoaded', () => {
     }, 500);
   });
 
-  // 📄 Download Receipt (PDF)
+  // 📄 Download Receipt (Client-side jsPDF)
   document.getElementById('downloadReceiptBtn').addEventListener('click', async () => {
     const btn = document.getElementById('downloadReceiptBtn');
     btn.innerHTML = 'Generating...';
     btn.disabled = true;
+
     try {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: [350, 550] });
+
       const html = `
         <h2>Ocassio Sports Ticket</h2>
-        <p><b>Match:</b> ${matchTitle}</p>
-        <p><b>Stand:</b> ${confirmedBay.standName || confirmedBay.stand}</p>
-        <p><b>Ring:</b> ${confirmedBay.ring}</p>
-        <p><b>Tickets:</b> ${ticketCount}</p>
-        <p><b>Total:</b> ₹${totalPrice}</p>
-        <p><b>Payment:</b> ${selectedMethod}</p>
+        <p><b>Match:</b> ${booking.matchTitle}</p>
+        <p><b>Venue:</b> ${booking.matchVenue}</p>
+        <p><b>Stand:</b> ${booking.stand}</p>
+        <p><b>Ring:</b> ${booking.ring}</p>
+        <p><b>Seats:</b> ${booking.seatNumbers}</p>
+        <p><b>Tickets:</b> ${booking.tickets}</p>
+        <p><b>Total:</b> ₹${booking.totalPrice}</p>
+        <p><b>Payment:</b> ${booking.method}</p>
+        <p><b>Booking ID:</b> ${booking.ref}</p>
         <img src="${qrImg}" width="100">
       `;
+
       await doc.html(html, {
-        x: 10, y: 10, html2canvas: { scale: 0.8 },
+        x: 10,
+        y: 10,
+        html2canvas: { scale: 0.8 },
         callback: function (pdf) {
-          pdf.save('Ocassio_Sports_Ticket.pdf');
+          pdf.save(`Ocassio_Sports_Ticket_${booking.ref}.pdf`);
           btn.innerHTML = 'Download Receipt';
           btn.disabled = false;
         }
