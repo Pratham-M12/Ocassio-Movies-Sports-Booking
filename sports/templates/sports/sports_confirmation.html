@@ -331,7 +331,7 @@ footer{width:100vw;background:#181818;color:#b0b0b8;text-align:center;padding:2.
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-<script>
+<!-- <script>
 window.addEventListener('DOMContentLoaded', () => {
   // 🎉 Confetti animation
   confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
@@ -447,6 +447,96 @@ window.addEventListener('DOMContentLoaded', () => {
       btn.innerHTML = 'Download Receipt';
       btn.disabled = false;
     }
+  });
+});
+</script> -->
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+  // 🎉 Confetti animation
+  confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+
+  // ✅ Pull data from Django context (injected into HTML)
+  const booking = {
+    matchTitle: "{{ booking.match.title|escapejs }}",
+    matchPoster: "{% if booking.match.image %}{{ booking.match.image.url|escapejs }}{% else %}{% static 'sports/default_match.jpg' %}{% endif %}",
+    matchVenue: "{{ booking.match.venue|escapejs }}",
+    matchDate: "{{ booking.match.date|date:'Y-m-d H:i' }}",
+    stand: "{{ booking.bay.stand|escapejs }}",
+    ring: "{{ booking.bay.ring|escapejs }}",
+    seatNumbers: "{{ booking.seat_numbers|join:', '|escapejs }}",
+    gate: "{{ booking.entry_gate|escapejs }}",
+    tickets: "{{ booking.ticket_count }}",
+    basePrice: "{{ booking.bay.price }}",
+    fee: "50", // you can replace this with a dynamic fee if stored
+    discount: "0",
+    totalPrice: "{{ booking.total_price }}",
+    method: "{{ booking.payment_method|default:'Online'|escapejs }}",
+    ref: "{{ booking.booking_ref|escapejs }}",
+    bookingTime: "{{ booking.booked_at|date:'M d, Y H:i A' }}"
+  };
+
+  // 🖼️ Poster setup
+  const posterImg = document.getElementById('matchPoster');
+  if (posterImg) {
+    posterImg.src = booking.matchPoster;
+    posterImg.alt = booking.matchTitle;
+  }
+
+  // 🎫 Fill event info
+  document.getElementById('matchTitle').textContent = booking.matchTitle;
+  document.getElementById('eventTitle').textContent = booking.matchTitle;
+  document.getElementById('eventVenue').textContent = booking.matchVenue;
+  document.getElementById('eventDate').textContent = new Date(booking.matchDate).toLocaleString();
+  document.getElementById('eventCategory').textContent = "{{ booking.match.category|escapejs }}";
+
+  // 🧾 Fill summary table
+  document.getElementById('summaryMatch').textContent = booking.matchTitle;
+  document.getElementById('summaryVenue').textContent = booking.matchVenue;
+  document.getElementById('summaryDate').textContent = new Date(booking.matchDate).toLocaleString();
+  document.getElementById('summaryStand').textContent = booking.stand;
+  document.getElementById('summaryRing').textContent = booking.ring;
+  document.getElementById('summarySeats').textContent = booking.seatNumbers;
+  document.getElementById('summaryGate').textContent = booking.gate;
+  document.getElementById('summaryTickets').textContent = booking.tickets;
+  document.getElementById('summaryBase').textContent = `₹${booking.basePrice}`;
+  document.getElementById('summaryFee').textContent = `₹${booking.fee}`;
+  document.getElementById('summaryDiscount').textContent = `₹${booking.discount}`;
+  document.getElementById('summaryTotal').textContent = `₹${booking.totalPrice}`;
+  document.getElementById('summaryMethod').textContent = booking.method;
+  document.getElementById('summaryRef').textContent = booking.ref;
+  document.getElementById('summaryTime').textContent = booking.bookingTime;
+
+  // 🧾 Generate QR code from server data
+  const qrCanvas = document.getElementById("qrCodeImg");
+  new QRious({
+    element: qrCanvas,
+    size: 120,
+    value: JSON.stringify({
+      match: booking.matchTitle,
+      stand: booking.stand,
+      tickets: booking.tickets,
+      total: booking.totalPrice,
+      ref: booking.ref
+    })
+  });
+  const qrImg = qrCanvas.toDataURL("image/png");
+
+  // 🖨️ Print Ticket (Django ticket template)
+  document.getElementById('printTicketBtn').addEventListener('click', () => {
+    const url = `{% url 'sports:sports_ticket_template' %}?booking_id={{ booking.id }}`;
+    const win = window.open(url, '_blank');
+    const check = setInterval(() => {
+      if (win.document.readyState === 'complete') {
+        clearInterval(check);
+        win.focus();
+        win.print();
+      }
+    }, 500);
+  });
+
+  // 📄 Download Receipt (server-side Django PDF)
+  document.getElementById('downloadReceiptBtn').addEventListener('click', () => {
+    window.location.href = "{% url 'sports:download_receipt' booking.id %}";
   });
 });
 </script>
