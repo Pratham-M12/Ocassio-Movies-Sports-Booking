@@ -58,11 +58,11 @@
   <div class="ticket ticket--accent">
     <div class="header ticket__header--accent">
       <div class="poster">
-        <img id="matchPoster" src="" alt="Match Poster" />
+        <img id="matchPoster" src="{% if match.image %}{{ match.image.url }}{% else %}{% static 'sports/default_match.jpg' %}{% endif %}" alt="{{ match.title }}" />
       </div>
       <div class="match-info">
-        <h2 id="matchTitle"></h2>
-        <p id="matchMeta"></p>
+        <h2 id="matchTitle">{{ match.title }}</h2>
+        <p id="matchMeta">{{ match.venue }}<br>{{ match.date|date:"d M Y, h:i A" }}</p>
       </div>
       <!-- download logo/button -->
       <button class="download-btn" id="downloadTicket" title="Download ticket as PDF" aria-label="Download ticket as PDF">
@@ -74,8 +74,9 @@
       </button>
     </div>
     <div class="details">
-      <h3 id="standInfo">Stand - Ring</h3>
-      <p id="ticketCount">Tickets: 0</p>
+      <h3 id="standInfo">{{ booking.bay.stand }} — Ring {{ booking.bay.ring }}</h3>
+      <p id="ticketCount">Tickets: {{ booking.ticket_count }}</p>
+      <p>Seats: {{ booking.seat_numbers|join:", " }}</p>
     </div>
     <div class="qr">
       <img id="qrCodeImg" src="" alt="QR Code" />
@@ -85,13 +86,13 @@
     </div>
     <div class="divider"></div>
     <div class="amount">
-      <div><span>Ticket(s) price</span><span id="priceBase">₹0</span></div>
-      <div><span>Convenience fee</span><span>₹0.00</span></div>
+      <div><span>Ticket(s) price</span><span id="priceBase">₹{{ booking.bay.price }}</span></div>
+      <div><span>Convenience fee</span><span>₹50.00</span></div>
       <div><span>Discount</span><span>- ₹0.00</span></div>
-      <div class="total"><span>Total Amount</span><span id="totalPrice">₹0</span></div>
+      <div class="total"><span>Total Amount</span><span id="totalPrice">₹{{ booking.total_price }}</span></div>
     </div>
     <div class="footer ticket__footer--accent">
-      Payment Method: <span id="paymentMethod">Loading...</span>
+      Payment Method: <span id="paymentMethod">{{ booking.payment_method|default:"Online" }}</span>
     </div>
   </div>
   <!-- scripts for download to PDF -->
@@ -157,21 +158,21 @@
   </script> -->
   <script>
   document.addEventListener("DOMContentLoaded", () => {
-    // Generate QR code
-    const qrCanvas = document.getElementById("qrCanvas");
-    new QRious({
-      element: qrCanvas,
-      size: 120,
+    const qrImg = document.getElementById("qrCodeImg");
+
+    const qr = new QRious({
       value: JSON.stringify({
         match: "{{ match.title|escapejs }}",
         stand: "{{ booking.bay.stand|escapejs }}",
         tickets: "{{ booking.ticket_count }}",
         total: "{{ booking.total_price }}",
-        ref: "{{ booking.booking_ref }}"
-      })
+        ref: "{{ booking.booking_ref|escapejs }}"
+      }),
+      size: 120
     });
 
-    // Download ticket as PDF
+    qrImg.src = qr.toDataURL();
+
     document.getElementById('downloadTicket').addEventListener('click', async () => {
       const el = document.querySelector('.ticket');
       const canvas = await html2canvas(el, { scale: 2, backgroundColor: null });
